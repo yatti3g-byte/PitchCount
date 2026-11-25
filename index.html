@@ -175,11 +175,11 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 /* ---------- 団体ごとの球数ルール（数字はアプリの中でも確認できるように出典を付ける） ---------- */
 const LLREST=n=>n>=66?4:n>=51?3:n>=36?2:n>=21?1:0;
 const RULES={
-  gakudo:{name:'学童（全日本軟式野球連盟）',desc:'1日70球・1週間210球（4年生以下は60球・180球）',finish:true,
+  gakudo:{name:'学童（全日本軟式野球連盟）',desc:'1日70球・1週間210球（4年生以下は60球・180球）',finish:true,balk:true,
     classes:[['','5・6年生'],['low','4年生以下']],lim:p=>p.cls==='low'?{day:60,week:180}:{day:70,week:210}},
-  chu:{name:'中学軟式（全日本軟式野球連盟 少年部）',desc:'1日100球・1週間350球',finish:true,lim:()=>({day:100,week:350})},
-  koko:{name:'高校（日本高等学校野球連盟）',desc:'1週間500球',lim:()=>({week:500})},
-  boys:{name:'ボーイズリーグ（日本少年野球連盟）',desc:'1日80球・連続する2日間で120球',lim:()=>({day:80,two:120})},
+  chu:{name:'中学軟式（全日本軟式野球連盟 少年部）',desc:'1日100球・1週間350球',finish:true,balk:true,lim:()=>({day:100,week:350})},
+  koko:{name:'高校（日本高等学校野球連盟）',desc:'1週間500球（対象は公式大会。アプリは直近7日間で計算）',finish:true,lim:()=>({week:500})},
+  boys:{name:'ボーイズリーグ（日本少年野球連盟）',desc:'1日80球・連続2日で120球。連続2日で80球を超えたら3日目は投げられない。3連投は1日40球まで、4連投は禁止',lim:()=>({day:80,two:120,boys:true})},
   little:{name:'リトルリーグ',desc:'1日85球（マイナー75球、インターメディエート95球）と休養日',finish:true,
     classes:[['major','メジャー（小5〜中1前半）'],['minor','マイナー（小4以下）'],['inter','インターメディエート']],
     lim:p=>({day:p.cls==='minor'?75:p.cls==='inter'?95:85,rest:LLREST})},
@@ -188,8 +188,23 @@ const RULES={
 
 let D={v:1,rule:'',custom:{day:'',two:'',week:''},players:[],outings:[],live:null};
 let noStore=false;
-try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v&&Array.isArray(v.players))D=Object.assign(D,v);}catch(e){noStore=true;}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){noStore=true;toast('この画面では保存できません。閉じると記録が消えます');}}
+// 保存データ・控えファイルの中身を確かめて、使える形だけを取り出す（壊れた行は捨てる）
+function cleanData(d){
+  if(!d||typeof d!=='object'||!Array.isArray(d.players))return null;
+  const players=d.players.filter(p=>p&&typeof p.id==='string'&&p.id&&typeof p.name==='string'&&p.name.trim())
+    .map(p=>({id:p.id.slice(0,40),name:p.name.trim().slice(0,16),no:String(p.no==null?'':p.no).slice(0,4),cls:typeof p.cls==='string'?p.cls:''}));
+  const ids=new Set(players.map(p=>p.id));
+  const outings=(Array.isArray(d.outings)?d.outings:[]).filter(o=>o&&ids.has(o.pid)&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&Number.isInteger(o.n)&&o.n>0&&o.n<=300)
+    .map(o=>{const x={id:String(o.id||uid()).slice(0,40),pid:o.pid,date:o.date,n:o.n,opp:String(o.opp||'').slice(0,20)};if(o.sid)x.sid=String(o.sid);return x;});
+  const num=v=>{const n=parseInt(v,10);return n>0?String(Math.min(999,n)):'';},c=d.custom||{};
+  const L=d.live,live=L&&typeof L.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(L.date)?{id:L.id,date:L.date,opp:String(L.opp||'').slice(0,20),cur:ids.has(L.cur)?L.cur:null,hist:(Array.isArray(L.hist)?L.hist:[]).filter(x=>ids.has(x))}:null;
+  const out={v:1,rule:RULES[d.rule]?d.rule:'',custom:{day:num(c.day),two:num(c.two),week:num(c.week)},players,outings,live};
+  if(d.cq&&Array.isArray(d.cq.games))out.cq={q:String(d.cq.q||'plan'),games:d.cq.games.filter(g=>g&&/^\d{4}-\d{2}-\d{2}$/.test(g.d)).map(g=>({d:g.d,n:[1,2,3].indexOf(+g.n)>=0?+g.n:1,m:String(g.m||'').slice(0,12)})),
+    feel:String(d.cq.feel||'').slice(0,80),free:String(d.cq.free||'').slice(0,300),hide:d.cq.hide!==false,ex:(Array.isArray(d.cq.ex)?d.cq.ex:[]).filter(x=>ids.has(x))};
+  return out;
+}
+try{const v=cleanData(JSON.parse(localStorage.getItem(KEY)||'null'));if(v)D=v;}catch(e){noStore=true;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D));if(noStore){noStore=false;render();}}catch(e){noStore=true;toast('この画面では保存できません。閉じると記録が消えます');}}
 const ui={view:D.live?'count':'board',date:today(),sheet:null};
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800);}
@@ -199,7 +214,7 @@ const pl=id=>D.players.find(p=>p.id===id);
 const label=p=>p?(p.no?'#'+p.no+' ':'')+p.name:'（削除した選手）';
 
 /* ---------- 計算 ---------- */
-function lim(p){const R=rule();if(!R)return {day:0,two:0,week:0,rest:null};const L=R.lim(p);return {day:L.day||0,two:L.two||0,week:L.week||0,rest:L.rest||null};}
+function lim(p){const R=rule();if(!R)return {day:0,two:0,week:0,rest:null};const L=R.lim(p);return {day:L.day||0,two:L.two||0,week:L.week||0,rest:L.rest||null,boys:!!L.boys};}
 function used(pid,a,b){let s=0;for(const o of D.outings)if(o.pid===pid&&o.date>=a&&o.date<=b)s+=o.n;return s;}
 function stat(p,date){
   const L=lim(p),items=[];
@@ -210,13 +225,20 @@ function stat(p,date){
   let rest=null;
   if(L.rest){const by={};D.outings.forEach(o=>{if(o.pid===p.id&&o.date<date)by[o.date]=(by[o.date]||0)+o.n;});
     Object.keys(by).forEach(d0=>{const rd=L.rest(by[d0]),from=addDays(d0,rd+1);if(rd&&from>date&&(!rest||from>rest.from))rest={from,n:by[d0],d:d0,rd};});}
+  // ボーイズ：連続2日で80球を超えたら3日目は禁止、3連投は1日40球まで、4連投は禁止
+  let ban=null;
+  if(L.boys){const u=k=>used(p.id,addDays(date,-k),addDays(date,-k)),d1=u(1),d2=u(2),d3=u(3);
+    if(d1&&d2&&d3)ban={why:'前の3日間続けて投げているので、4連投になる今日は投げられません'};
+    else if(d1&&d2&&d1+d2>80)ban={why:'前の2日間で'+(d1+d2)+'球（80球超）投げているので、3日目の今日は投げられません'};
+    else if(d1&&d2){const x={k:'3連投',u:used(p.id,date,date),l:40};x.r=x.l-x.u;items.push(x);if(!bind||x.r<bind.r)bind=x;}}
   const rem=bind?Math.max(0,bind.r):Infinity;
-  return {items,bind,rem,rest,blocked:!!rest||rem<=0,dayU:used(p.id,date,date)};
+  return {items,bind,rem,rest,ban,blocked:!!rest||!!ban||rem<=0,dayU:used(p.id,date,date)};
 }
 function level(s){if(s.blocked)return 'over';return s.bind&&s.bind.u/s.bind.l>=0.8?'warn':'ok';}
 function next(p,date){for(let i=1;i<=21;i++){const d=addDays(date,i),s=stat(p,d);if(!s.blocked)return {d,rem:s.rem};}return null;}
 function why(p,s,date){
   if(s.rest)return s.rest.n+'球投げた（'+md(s.rest.d)+'）ので休養日が必要。'+md(s.rest.from)+'から投げられます';
+  if(s.ban){const n=next(p,date);return s.ban.why.replace('今日',md(date))+(n?'。次は'+md(n.d)+'から':'');}
   if(s.rem<=0){const n=next(p,date);return s.bind.k+'の上限'+s.bind.l+'球に達しています'+(n?'。次は'+md(n.d)+'から（'+(n.rem===Infinity?'制限なし':'最大'+n.rem+'球')+'）':'');}
   return '';
 }
@@ -234,7 +256,7 @@ function render(){
   else if(ui.view==='history')h+=history();
   else h+=settings();
   $('#main').innerHTML=h;
-  if(ui.view==='count'&&D.live)keepAwake();
+  if(ui.view==='count'&&D.live)keepAwake();else releaseWake();
 }
 function shortRule(){const R=rule();return R?R.name.replace(/（.*$/,''):'';}
 
@@ -242,7 +264,7 @@ function setupRule(){
   return '<section class="card"><h2>はじめに：どの団体のルールで数えますか？</h2><p class="muted">選ぶと、1日・1週間の上限が自動で入ります。あとから「設定」で変えられます。</p></section>'+ruleList();
 }
 function ruleList(){
-  return '<div class="rules">'+Object.keys(RULES).map(k=>'<button class="rule'+(D.rule===k?' on':'')+'" data-act="rule" data-v="'+k+'"><b>'+esc(RULES[k].name)+'</b><small>'+esc(RULES[k].desc)+'</small></button>').join('')+'</div>';
+  return '<p class="muted">団体の基本ルールで計算します。大会・地域・カテゴリーで違うことがあるので、大会要項を優先してください。</p><div class="rules">'+Object.keys(RULES).map(k=>'<button class="rule'+(D.rule===k?' on':'')+'" data-act="rule" data-v="'+k+'"><b>'+esc(RULES[k].name)+'</b><small>'+esc(RULES[k].desc)+'</small></button>').join('')+'</div>';
 }
 
 function board(){
@@ -283,20 +305,21 @@ function count(){
     return '<form class="card" data-form="start" style="display:flex;flex-direction:column;gap:10px"><h2>試合を始める</h2>'+
       '<div class="grid2"><label class="fld">日付<input type="date" id="st-date" value="'+today()+'"></label><label class="fld">相手・メモ<input id="st-opp" maxlength="20" placeholder="例：〇〇少年野球"></label></div>'+
       '<div class="fld">先発投手</div><div class="chips">'+pitcherChips(null,today(),'pick')+'</div>'+
-      '<button class="btn primary">カウントを始める</button></form><p class="muted">けん制や野手への送球は数えません。ボークでも投げた球は数えます（全軟連の運用）。</p>';
+      '<button class="btn primary">カウントを始める</button></form><p class="muted">けん制や野手への送球は数えません。'+(rule().balk?'ボークでも投げた球は数えます（全軟連の運用）。':'ボークの球を数えるかは、大会要項で確かめてください。')+'</p>';
   }
-  const p=pl(L.cur);let h='<div class="live"><div class="lhead"><b>'+md(L.date)+(L.opp?' vs '+esc(L.opp):'')+'</b><button class="btn sm" data-act="finish">試合を終える</button></div>';
+  const p=pl(L.cur);let h='<div class="live"><div class="lhead"><b>'+md(L.date)+(L.opp?' vs '+esc(L.opp):'')+'</b><button class="btn sm" data-act="finish">試合終了</button></div>';
   h+='<div class="chips" aria-label="投手">'+pitcherChips(L.cur,L.date,'cur')+'</div>';
   if(!p){h+='<p class="empty">投げている投手を選んでください</p></div>';return h;}
   const s=stat(p,L.date),lv=level(s),n=sessN(p.id);
   let st='';
   if(s.rest)st='休養日の投手です（'+md(s.rest.from)+'から投げられます）';
+  else if(s.ban)st=s.ban.why.replace('今日',md(L.date));
   else if(s.rem<=0)st=s.bind.k+'の上限'+s.bind.l+'球に達しました'+(rule().finish?'。この打者が終わるまで投げられます':'');
   else st=remText(s)+(s.bind?'（'+s.bind.k+'の上限'+s.bind.l+'球）':'');
   h+='<button class="tap '+lv+'" data-act="plus" aria-label="1球数える"><span class="who">'+esc(label(p))+'</span><span class="n">'+n+'</span><span class="plus">タップで ＋1球</span></button>';
   h+='<p class="state '+lv+'">'+esc(st)+'</p>';
-  if(s.dayU!==n)h+='<p class="muted" style="text-align:center">この日の合計 '+s.dayU+'球（ほかの試合を含む）</p>';
-  h+='<div class="row"><button class="btn" data-act="minus"'+(L.hist.length?'':' disabled')+'>1球取り消す</button><button class="btn" data-act="adj">数を直す</button></div>';
+  h+='<div class="row"><button class="btn" data-act="minus"'+(L.hist.length?'':' disabled')+'>1球取り消す</button><button class="btn" data-act="adj">球数を修正</button></div>';
+  if(s.items.length||s.dayU!==n)h+='<section class="card"><div class="meters" style="margin:0">'+s.items.map(meter).join('')+'</div>'+(s.dayU!==n?'<p class="muted" style="margin-top:6px">この日の合計 '+s.dayU+'球（ほかの試合を含む）</p>':'')+'</section>';
   const ids=sessIds();
   if(ids.length)h+='<section class="card"><h2>この試合</h2><ul class="sess">'+ids.map(id=>'<li><span>'+esc(label(pl(id)))+'</span><b>'+sessN(id)+'球</b></li>').join('')+'</ul></section>';
   return h+'</div>';
@@ -316,6 +339,7 @@ function addPitch(pid,delta){
 }
 function plus(){
   const L=D.live,p=pl(L&&L.cur);if(!p)return;
+  const t=Date.now();if(t-(ui.tapAt||0)<400)return;ui.tapAt=t;   // 指が2回当たったときの二重加算を防ぐ
   const b=level(stat(p,L.date));addPitch(p.id,1);L.hist.push(p.id);save();
   const s=stat(p,L.date),a=level(s);
   if(a!==b&&a==='warn'){vib([80]);toast('上限の8割です：'+remText(s));}
@@ -323,7 +347,7 @@ function plus(){
   else vib(15);
   render();
 }
-function minus(){const L=D.live;const pid=L.hist.pop();if(!pid)return;addPitch(pid,-1);L.cur=pid;save();toast('1球取り消しました');render();}
+function minus(){const L=D.live;const pid=L.hist.pop();if(!pid)return;addPitch(pid,-1);L.cur=pid;save();vib([30,60,30]);toast('1球取り消しました（'+label(pl(pid))+' '+sessN(pid)+'球）');render();}
 
 function history(){
   let h='<div class="row"><button class="btn primary" data-act="addo">登板を手で追加</button></div><p class="muted">練習試合や数え忘れた登板もここで入れると、7日間の合計に入ります。</p>';
@@ -340,8 +364,8 @@ function settings(){
   if(D.rule==='custom')h+='<form class="card" data-form="custom" style="display:flex;flex-direction:column;gap:8px"><p class="muted">空欄は「制限なし」です。</p><div class="grid2" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label class="fld">1日<input id="cu-day" inputmode="numeric" value="'+esc(D.custom.day)+'"></label><label class="fld">連続2日<input id="cu-two" inputmode="numeric" value="'+esc(D.custom.two)+'"></label><label class="fld">1週間<input id="cu-week" inputmode="numeric" value="'+esc(D.custom.week)+'"></label></div><button class="btn primary">保存</button></form>';
   h+='<section class="card"><h2>ルールの出典（'+CHECKED+'に確認）</h2><ul class="src">'+
     '<li>学童・中学軟式：全日本軟式野球連盟「2026年 競技者必携改訂について」。学童部は1週間210球以内（4年生以下180球）が新設、少年部は1週間350球以内を追加。 <a href="https://jsbb.or.jp/docs/ef12bb25f222e15e423c170cdf1cc501576ca00d.pdf">PDF</a></li>'+
-    '<li>高校：日本高野連は「1週間500球」を2025年度から正式な高校野球特別規則にしました。</li>'+
-    '<li>ボーイズ：2022年に1日80球、連続する2日間で120球以内のガイドラインを制定。</li>'+
+    '<li>高校：日本高野連は「1週間500球」を2025年度から正式な高校野球特別規則にしました。登板中に500球に達したら、その打者との対戦が終わるまで投げられ、降板した投手は再登板できません。対象は公式大会で、1週間は大会の日程で数えます（アプリは直近7日間の参考値）。</li>'+
+    '<li>ボーイズ：2022年のガイドライン。1日80球、連続する2日間で120球以内。連続2日間で80球を超えたら3日目は投球禁止、3連投は1日40球以内、4連投は禁止。</li>'+
     '<li>リトルリーグ：1日の上限はメジャー85球・マイナー75球・インターメディエート95球。休養日は世界リトルリーグの規定（21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日）で計算しています。</li>'+
     '<li>「1週間」は、その日を含む直近7日間で計算しています。大会によって数え方や上限が違うことがあるので、大会要項を確かめてください。</li></ul></section>';
   h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中だけに保存され、どこにも送られません。機種変更やもしもの時のために、控えをとっておけます。</p>'+
@@ -369,6 +393,7 @@ function ruleLines(){const R=rule(),L=[];if(!R)return L;
   L.push('- 団体：'+R.name);
   if(D.rule==='custom'){const c=D.custom;L.push('- 上限：1日'+(c.day?c.day+'球':'なし')+'、連続2日'+(c.two?c.two+'球':'なし')+'、1週間'+(c.week?c.week+'球':'なし'));}
   else if(D.rule==='gakudo')L.push('- 上限：1日70球・1週間210球。4年生以下は1日60球・1週間180球');
+  else if(D.rule==='boys')L.push('- 上限：1日80球、連続する2日間で120球','- 連続する2日間で80球を超えたら、3日目は投げられない。3日続けて投げる日は、その日40球まで。4日続けて投げることはできない');
   else if(D.rule==='little')L.push('- 1日の上限：メジャー85球、マイナー75球、インターメディエート95球','- 休養日：1日に21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日（20球以下は休養日なし）。たとえば土曜に40球なら、日・月が休みで火曜から投げられる');
   else L.push('- 上限：'+R.desc);
   L.push('- 1日はその日の合計（1日2試合なら2試合の合計）。連続2日は前日とその日の合計。1週間はその日を含む直近7日間の合計。');
@@ -394,7 +419,7 @@ function cqText(){
   L.push('','# 記録','## ルール',...ruleLines());
   L.push('','## 予定（今日は'+md(now)+'）');
   if(G.length)G.forEach(g=>L.push('- '+md(g.d)+'：'+g.n+'試合'+(g.m?'（'+mask(g.m)+'）':'')));else L.push('- 予定の入力なし');
-  const from=addDays(G.length?G[0].d:now,-6);
+  const from=addDays(G.length&&G[0].d<now?G[0].d:now,-6);   // 予定が先でも、直近7日間の登板は必ず入れる
   L.push('','## 投手ごとの状況（アプリで計算）','「予定日に投げられる球数」は、それまでに投げなかった場合の、その日の最大球数です。'+(o.hide?'選手の名前は伏せています。':''));
   D.players.forEach((p,i)=>{const cls=clsName(p).slice(1);
     if(o.ex.indexOf(p.id)>=0){L.push('- '+name(p,i)+(cls?'（'+cls+'）':'')+'：今回は起用しない');return;}
@@ -454,6 +479,7 @@ function gameText(L){return '【球数】'+md(L.date)+(L.opp?' vs '+L.opp:'')+'\
 
 let wake=null;
 async function keepAwake(){try{if(!navigator.wakeLock||wake||document.visibilityState!=='visible')return;wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null;});}catch(e){}}
+function releaseWake(){if(wake){const w=wake;wake=null;try{w.release().catch(()=>{});}catch(e){}}}
 document.addEventListener('visibilitychange',()=>{if(D.live&&ui.view==='count')keepAwake();});
 
 /* ---------- 操作 ---------- */
@@ -462,8 +488,11 @@ document.addEventListener('click',async e=>{
   if(a==='tab'){ui.view=v;render();scrollTo(0,0);}
   else if(a==='rule'){D.rule=v;save();if(ui.view!=='settings')ui.view='board';toast(RULES[v].name+'のルールにしました');render();}
   else if(a==='day'){ui.date=v==='0'?today():addDays(ui.date,+v);render();}
-  else if(a==='pick'){document.querySelectorAll('[data-act="pick"]').forEach(x=>x.classList.toggle('on',x===b));ui.pick=id;}
-  else if(a==='cur'){D.live.cur=id;save();render();}
+  else if(a==='pick'){document.querySelectorAll('[data-act="pick"]').forEach(x=>x.classList.toggle('on',x===b));ui.pick=id;
+    const p=pl(id),dt=($('#st-date')||{}).value||today(),s=stat(p,dt);if(s.blocked)toast(label(p)+'はこの日は投げられません：'+(why(p,s,dt)||'上限に達しています'));}
+  else if(a==='cur'){if(id===D.live.cur)return;const p=pl(id),s=stat(p,D.live.date);
+    const go=()=>{D.live.cur=id;save();render();const t=stat(p,D.live.date);toast(label(p)+'：この日'+t.dayU+'球・'+(t.blocked?'投げられない':remText(t)));};
+    if(s.blocked)confirmSheet(label(p)+'は投げられない状態です（'+(why(p,s,D.live.date)||'上限に達しています')+'）。記録を直すときなどに限って、投手にしますか？','投手にする',go);else go();}
   else if(a==='cq'){cq().q=v;ui.cqEdited=null;ui.cqMsg='';save();render();if(v==='free'){const t=$('#cq-free');if(t)t.focus();}}
   else if(a==='cqex'){const o=cq(),i=o.ex.indexOf(id);if(i>=0)o.ex.splice(i,1);else o.ex.push(id);ui.cqEdited=null;save();render();}
   else if(a==='cqadd'){const o=cq(),last=o.games.length?o.games[o.games.length-1].d:today();o.games.push({d:addDays(last,1),n:1,m:''});ui.cqEdited=null;save();render();}
@@ -475,7 +504,7 @@ document.addEventListener('click',async e=>{
     sheet('<h3>'+esc(label(p))+'の球数を直す</h3><label class="fld">この試合の球数<input id="adj-n" type="number" inputmode="numeric" min="0" max="300" value="'+sessN(p.id)+'"></label><div class="row"><button class="btn" data-act="close">やめる</button><button class="btn primary" data-act="adjok">直す</button></div>');}
   else if(a==='adjok'){const n=Math.max(0,Math.min(300,parseInt($('#adj-n').value,10)||0)),pid=ui.sheet.adj,cur=sessN(pid);addPitch(pid,n-cur);D.live.hist=D.live.hist.filter(x=>x!==pid);save();closeSheet();toast('球数を'+n+'球にしました');render();}
   else if(a==='finish'){const L=D.live;
-    confirmSheet('試合を終えますか？（記録は履歴に残ります）','終える',()=>{const t=gameText(L);D.live=null;save();ui.view='board';ui.date=L.date;render();if(D.outings.some(o=>o.sid===L.id))shareSheet(t);});}
+    confirmSheet('試合終了にしますか？（記録は履歴に残ります）','試合終了',()=>{const t=gameText(L);D.live=null;save();ui.view='board';ui.date=L.date;render();if(D.outings.some(o=>o.sid===L.id))shareSheet(t);});}
   else if(a==='shareBoard')shareSheet(boardText(ui.date));
   else if(a==='copy'){try{await navigator.clipboard.writeText(ui.sheet.text);toast('コピーしました');}catch(_){const t=$('#sheet textarea');t.select();toast('文字を選びました。長押しでコピーしてください');}}
   else if(a==='close')closeSheet();
@@ -519,8 +548,12 @@ document.addEventListener('change',e=>{
     ui.cqEdited=null;cqRefresh();return;}
   if(e.target.id!=='imp'||!e.target.files[0])return;const fr=new FileReader();
   fr.onload=()=>{let d=null;try{d=JSON.parse(fr.result);}catch(_){}
-    if(!d||d.app!=='PitchCount'||!d.data||!Array.isArray(d.data.players)){toast('PitchCountの控えではないようです');return;}
-    confirmSheet('控え（投手'+d.data.players.length+'人・登板'+(d.data.outings||[]).length+'件）に置き換えますか？','置き換える',()=>{D=Object.assign({v:1,rule:'',custom:{day:'',two:'',week:''},players:[],outings:[],live:null},d.data);save();toast('控えから戻しました');render();},true);};
+    const c=d&&d.app==='PitchCount'?cleanData(d.data):null;
+    if(!c){toast('PitchCountの控えではないようです');return;}
+    const skip=(d.data.players.length-c.players.length)+((d.data.outings||[]).length-c.outings.length);
+    confirmSheet('控え（投手'+c.players.length+'人・登板'+c.outings.length+'件）に置き換えますか？'+(skip?'（読めない記録'+skip+'件は入れません）':''),'置き換える',()=>{
+      try{localStorage.setItem(KEY+'.before-restore',JSON.stringify(D));}catch(_){}   // 置き換える前の記録を1つだけ残しておく
+      D=c;save();ui.view='board';toast('控えから戻しました');render();},true);};
   fr.readAsText(e.target.files[0]);e.target.value='';
 });
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
