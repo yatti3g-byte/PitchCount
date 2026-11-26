@@ -191,15 +191,17 @@ let noStore=false;
 // 保存データ・控えファイルの中身を確かめて、使える形だけを取り出す（壊れた行は捨てる）
 function cleanData(d){
   if(!d||typeof d!=='object'||!Array.isArray(d.players))return null;
-  const players=d.players.filter(p=>p&&typeof p.id==='string'&&p.id&&typeof p.name==='string'&&p.name.trim())
+  const okId=x=>typeof x==='string'&&/^[A-Za-z0-9_-]{1,40}$/.test(x),seen=new Set();
+  const realDay=x=>{if(typeof x!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const t=new Date(x+'T00:00:00');return !isNaN(t)&&ymd(t)===x;};
+  const players=d.players.filter(p=>p&&okId(p.id)&&!seen.has(p.id)&&seen.add(p.id)&&typeof p.name==='string'&&p.name.trim())
     .map(p=>({id:p.id.slice(0,40),name:p.name.trim().slice(0,16),no:String(p.no==null?'':p.no).slice(0,4),cls:typeof p.cls==='string'?p.cls:''}));
   const ids=new Set(players.map(p=>p.id));
-  const outings=(Array.isArray(d.outings)?d.outings:[]).filter(o=>o&&ids.has(o.pid)&&/^\d{4}-\d{2}-\d{2}$/.test(o.date)&&Number.isInteger(o.n)&&o.n>0&&o.n<=300)
-    .map(o=>{const x={id:String(o.id||uid()).slice(0,40),pid:o.pid,date:o.date,n:o.n,opp:String(o.opp||'').slice(0,20)};if(o.sid)x.sid=String(o.sid);return x;});
+  const outings=(Array.isArray(d.outings)?d.outings:[]).filter(o=>o&&ids.has(o.pid)&&realDay(o.date)&&Number.isInteger(o.n)&&o.n>0&&o.n<=300)
+    .map(o=>{const x={id:okId(o.id)?o.id:uid(),pid:o.pid,date:o.date,n:o.n,opp:String(o.opp||'').slice(0,20)};if(okId(o.sid))x.sid=o.sid;return x;});
   const num=v=>{const n=parseInt(v,10);return n>0?String(Math.min(999,n)):'';},c=d.custom||{};
-  const L=d.live,live=L&&typeof L.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(L.date)?{id:L.id,date:L.date,opp:String(L.opp||'').slice(0,20),cur:ids.has(L.cur)?L.cur:null,hist:(Array.isArray(L.hist)?L.hist:[]).filter(x=>ids.has(x))}:null;
+  const L=d.live,live=L&&okId(L.id)&&realDay(L.date)?{id:L.id,date:L.date,opp:String(L.opp||'').slice(0,20),cur:ids.has(L.cur)?L.cur:null,hist:(Array.isArray(L.hist)?L.hist:[]).filter(x=>ids.has(x))}:null;
   const out={v:1,rule:RULES[d.rule]?d.rule:'',custom:{day:num(c.day),two:num(c.two),week:num(c.week)},players,outings,live};
-  if(d.cq&&Array.isArray(d.cq.games))out.cq={q:String(d.cq.q||'plan'),games:d.cq.games.filter(g=>g&&/^\d{4}-\d{2}-\d{2}$/.test(g.d)).map(g=>({d:g.d,n:[1,2,3].indexOf(+g.n)>=0?+g.n:1,m:String(g.m||'').slice(0,12)})),
+  if(d.cq&&Array.isArray(d.cq.games))out.cq={q:String(d.cq.q||'plan'),games:d.cq.games.filter(g=>g&&realDay(g.d)).map(g=>({d:g.d,n:[1,2,3].indexOf(+g.n)>=0?+g.n:1,m:String(g.m||'').slice(0,12)})),
     feel:String(d.cq.feel||'').slice(0,80),free:String(d.cq.free||'').slice(0,300),hide:d.cq.hide!==false,ex:(Array.isArray(d.cq.ex)?d.cq.ex:[]).filter(x=>ids.has(x))};
   return out;
 }
@@ -295,7 +297,7 @@ function playerForm(){
 }
 function playerList(){
   if(!D.players.length)return '';
-  return '<div class="hlist" style="margin-top:8px">'+D.players.map(p=>'<button class="hrow" data-act="editp" data-id="'+p.id+'"><span>'+esc(label(p))+'<small>'+esc(clsName(p).slice(1))+'</small></span><span class="muted">編集</span></button>').join('')+'</div>';
+  return '<div class="hlist" style="margin-top:8px">'+D.players.map(p=>'<button class="hrow" data-act="editp" data-id="'+esc(p.id)+'"><span>'+esc(label(p))+'<small>'+esc(clsName(p).slice(1))+'</small></span><span class="muted">編集</span></button>').join('')+'</div>';
 }
 
 function count(){
@@ -304,7 +306,7 @@ function count(){
   if(!L){
     return '<form class="card" data-form="start" style="display:flex;flex-direction:column;gap:10px"><h2>試合を始める</h2>'+
       '<div class="grid2"><label class="fld">日付<input type="date" id="st-date" value="'+today()+'"></label><label class="fld">相手・メモ<input id="st-opp" maxlength="20" placeholder="例：〇〇少年野球"></label></div>'+
-      '<div class="fld">先発投手</div><div class="chips">'+pitcherChips(null,today(),'pick')+'</div>'+
+      '<div class="fld">先発投手</div><div class="chips" id="st-chips">'+pitcherChips(ui.pick,today(),'pick')+'</div>'+
       '<button class="btn primary">カウントを始める</button></form><p class="muted">けん制や野手への送球は数えません。'+(rule().balk?'ボークでも投げた球は数えます（全軟連の運用）。':'ボークの球を数えるかは、大会要項で確かめてください。')+'</p>';
   }
   const p=pl(L.cur);let h='<div class="live"><div class="lhead"><b>'+md(L.date)+(L.opp?' vs '+esc(L.opp):'')+'</b><button class="btn sm" data-act="finish">試合終了</button></div>';
@@ -314,7 +316,7 @@ function count(){
   let st='';
   if(s.rest)st='休養日の投手です（'+md(s.rest.from)+'から投げられます）';
   else if(s.ban)st=s.ban.why.replace('今日',md(L.date));
-  else if(s.rem<=0)st=s.bind.k+'の上限'+s.bind.l+'球に達しました'+(rule().finish?'。この打者が終わるまで投げられます':'');
+  else if(s.rem<=0){const over=s.bind.u-s.bind.l;st=s.bind.k+'の上限'+s.bind.l+'球に'+(over>0?'達し、'+over+'球超えています':'達しました')+(rule().finish?'。規定では、その打者との対戦が終わるまで続投が認められています':'');}
   else st=remText(s)+(s.bind?'（'+s.bind.k+'の上限'+s.bind.l+'球）':'');
   h+='<button class="tap '+lv+'" data-act="plus" aria-label="1球数える"><span class="who">'+esc(label(p))+'</span><span class="n">'+n+'</span><span class="plus">タップで ＋1球</span></button>';
   h+='<p class="state '+lv+'">'+esc(st)+'</p>';
@@ -326,7 +328,7 @@ function count(){
 }
 function pitcherChips(cur,date,act){
   return D.players.map(p=>{const s=stat(p,date),n=D.live?sessN(p.id):0;
-    return '<button type="button" class="chip'+(p.id===cur?' on':'')+(s.blocked&&p.id!==cur?' no':'')+'" data-act="'+act+'" data-id="'+p.id+'">'+esc(label(p))+'<small>'+(n?n+'球':s.blocked?'不可':s.rem===Infinity?'':'あと'+s.rem)+'</small></button>';}).join('');
+    return '<button type="button" class="chip'+(p.id===cur?' on':'')+(s.blocked&&p.id!==cur?' no':'')+'" data-act="'+act+'" data-id="'+esc(p.id)+'">'+esc(label(p))+'<small>'+(n?n+'球':s.blocked?'不可':s.rem===Infinity?'':'あと'+s.rem)+'</small></button>';}).join('');
 }
 const sessOut=pid=>D.outings.find(o=>o.sid===D.live.id&&o.pid===pid);
 const sessN=pid=>{const o=sessOut(pid);return o?o.n:0;};
@@ -343,7 +345,7 @@ function plus(){
   const b=level(stat(p,L.date));addPitch(p.id,1);L.hist.push(p.id);save();
   const s=stat(p,L.date),a=level(s);
   if(a!==b&&a==='warn'){vib([80]);toast('上限の8割です：'+remText(s));}
-  else if(a!==b&&a==='over'){vib([250,120,250]);toast('上限に達しました'+(rule().finish?'。この打者が終わるまで投げられます':''));}
+  else if(a!==b&&a==='over'){vib([250,120,250]);toast('上限に達しました'+(rule().finish?'。規定では、その打者との対戦が終わるまで続投が認められています':''));}
   else vib(15);
   render();
 }
@@ -355,7 +357,7 @@ function history(){
   if(!os.length)return h+'<p class="empty">まだ登板の記録はありません</p>';
   let last='';h+='<div class="hlist">';
   os.forEach(o=>{if(o.date!==last){last=o.date;h+='<p class="hday">'+md(o.date)+'</p>';}
-    h+='<button class="hrow" data-act="edito" data-id="'+o.id+'"><span>'+esc(label(pl(o.pid)))+(o.opp?'<small>vs '+esc(o.opp)+'</small>':'')+'</span><b>'+o.n+'球</b></button>';});
+    h+='<button class="hrow" data-act="edito" data-id="'+esc(o.id)+'"><span>'+esc(label(pl(o.pid)))+(o.opp?'<small>vs '+esc(o.opp)+'</small>':'')+'</span><b>'+o.n+'球</b></button>';});
   return h+'</div>';
 }
 
@@ -364,11 +366,11 @@ function settings(){
   if(D.rule==='custom')h+='<form class="card" data-form="custom" style="display:flex;flex-direction:column;gap:8px"><p class="muted">空欄は「制限なし」です。</p><div class="grid2" style="grid-template-columns:repeat(3,minmax(0,1fr))"><label class="fld">1日<input id="cu-day" inputmode="numeric" value="'+esc(D.custom.day)+'"></label><label class="fld">連続2日<input id="cu-two" inputmode="numeric" value="'+esc(D.custom.two)+'"></label><label class="fld">1週間<input id="cu-week" inputmode="numeric" value="'+esc(D.custom.week)+'"></label></div><button class="btn primary">保存</button></form>';
   h+='<section class="card"><h2>ルールの出典（'+CHECKED+'に確認）</h2><ul class="src">'+
     '<li>学童・中学軟式：全日本軟式野球連盟「2026年 競技者必携改訂について」。学童部は1週間210球以内（4年生以下180球）が新設、少年部は1週間350球以内を追加。 <a href="https://jsbb.or.jp/docs/ef12bb25f222e15e423c170cdf1cc501576ca00d.pdf">PDF</a></li>'+
-    '<li>高校：日本高野連は「1週間500球」を2025年度から正式な高校野球特別規則にしました。登板中に500球に達したら、その打者との対戦が終わるまで投げられ、降板した投手は再登板できません。対象は公式大会で、1週間は大会の日程で数えます（アプリは直近7日間の参考値）。</li>'+
+    '<li>高校：日本高野連は「1週間500球」を2025年度から正式な高校野球特別規則にしました。規定では、登板中に500球に達したら、その打者との対戦が終わるまで投げられ、降板した投手は再登板できません。アプリは500球に達した投手を「投げられない」と表示し、選ぶときに確認を出しますが、再登板を止めはしません。対象は公式大会で、1週間は大会の日程で数えます（アプリは直近7日間の参考値）。</li>'+
     '<li>ボーイズ：2022年のガイドライン。1日80球、連続する2日間で120球以内。連続2日間で80球を超えたら3日目は投球禁止、3連投は1日40球以内、4連投は禁止。</li>'+
     '<li>リトルリーグ：1日の上限はメジャー85球・マイナー75球・インターメディエート95球。休養日は世界リトルリーグの規定（21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日）で計算しています。</li>'+
     '<li>「1週間」は、その日を含む直近7日間で計算しています。大会によって数え方や上限が違うことがあるので、大会要項を確かめてください。</li></ul></section>';
-  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中だけに保存され、どこにも送られません。機種変更やもしもの時のために、控えをとっておけます。</p>'+
+  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。機種変更やもしもの時のために、控えをとっておけます。</p>'+
     '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えから戻す<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
     '<button class="btn danger" data-act="wipe">すべての記録を消す</button></section>';
   h+='<section class="card sister"><h2>姉妹アプリ</h2><p><a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>　1球ずつタップして記録するスコアブック</p></section>';
@@ -383,8 +385,8 @@ const CQ=[
   {k:'share',l:'登板機会をかたよらせたくない',q:()=>'登板がかたよらないように、予定の試合で投手を回す案を示してください。直近の登板が少ない投手にも、無理のない範囲で機会をつくってください。'},
   {k:'free',l:'自分で書く',q:()=>''}];
 const HOW=['1. 起用案（試合ごとに、先発と継投の順番、各投手の球数のめやす）','2. ルールの確認表（投手ごと・日ごとの予定球数と、1日・連続2日・1週間の上限までの残り）','3. 予定がくずれたとき（先発が早く崩れた、試合が長引いた）の代わりの手','4. 気をつけること（1つ）'];
-function nextWeekend(){const d=new Date(today()+'T00:00:00'),k=(6-d.getDay()+7)%7,sat=addDays(today(),d.getDay()===0?-1:k);
-  const s=sat<today()?today():sat;return [{d:s,n:1,m:''},{d:addDays(sat,1),n:1,m:''}].filter((x,i,a)=>a.findIndex(y=>y.d===x.d)===i);}
+// 月〜金：その週の土日／土：今日と明日／日：次の週の土日
+function nextWeekend(){const w=new Date(today()+'T00:00:00').getDay(),sat=addDays(today(),(6-w+7)%7);return [{d:sat,n:1,m:''},{d:addDays(sat,1),n:1,m:''}];}
 function cq(){if(!D.cq||!Array.isArray(D.cq.games))D.cq={q:'plan',games:nextWeekend(),feel:'',free:'',hide:true,ex:[]};
   // 過ぎた予定は消し、空になったら次の週末を入れる
   D.cq.games=D.cq.games.filter(g=>g&&g.d&&g.d>=today());if(!D.cq.games.length)D.cq.games=nextWeekend();return D.cq;}
@@ -404,10 +406,11 @@ function cqText(){
   const name=(p,i)=>o.hide?'投手'+letter(i):label(p);
   const mask=t=>{t=String(t||'');if(!o.hide)return t;D.players.map((p,i)=>[p.name,'投手'+letter(i)]).filter(x=>x[0].length>=2).sort((a,b)=>b[0].length-a[0].length).forEach(x=>{t=t.split(x[0]).join(x[1]);});return t;};
   const q=(o.q==='free'?mask(o.free.trim()):c.q())||'下の予定と記録から、投手の起用について気づくことを教えてください。';
-  const G=o.games.slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  // 同じ日の予定は1行にまとめる（1日の上限は、その日の試合の合計にかかるため）
+  const G=[];o.games.slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).forEach(g=>{const x=G.find(y=>y.d===g.d);if(x){x.n+=g.n;if(g.m)x.m=x.m?x.m+'・'+g.m:g.m;}else G.push({d:g.d,n:g.n,m:g.m});});
   const L=['あなたは少年野球チームの監督・コーチの、投手起用の参謀です。下の「記録」は、球数カウントアプリ PitchCount が記録した登板と、団体の球数ルールから計算したものです。',
     '','# 守ってほしいこと',
-    '- 球数の上限と休養日は、下の「ルール」と「投手ごとの状況」の数字を使ってください。予定日に投げられる球数はアプリが計算済みです。案の中で前の試合に投げさせた分を差し引くときだけ、ルールに従って計算し、確認表に式を残してください。',
+    '- 球数の上限と休養日は、下の「ルール」と「投手ごとの状況」の数字を使ってください。予定日に投げられる最大球数はアプリが計算済みです。案の中で前の試合に投げさせた分を差し引くときだけ、ルールに従って計算し、確認表に式を残してください。',
     '- 上限ぎりぎりまで投げさせる案ではなく、余裕を残した案にしてください（上限の8割をめやすに）。',
     '- 肩・ひじの痛みや疲れの判断はしないでください。体調に不安がある選手は、監督・コーチが起用から外す前提です。',
     '- 「今回は起用しない」投手は、案に入れないでください。',
@@ -418,16 +421,16 @@ function cqText(){
   if(o.q!=='free')L.push('','# 答え方',...HOW);
   L.push('','# 記録','## ルール',...ruleLines());
   L.push('','## 予定（今日は'+md(now)+'）');
-  if(G.length)G.forEach(g=>L.push('- '+md(g.d)+'：'+g.n+'試合'+(g.m?'（'+mask(g.m)+'）':'')));else L.push('- 予定の入力なし');
+  if(G.length)G.forEach(g=>L.push('- '+md(g.d)+'：'+g.n+'試合'+(g.m?'（'+mask(g.m)+'）':'')+(g.n>1?'。同じ日の試合の球数は合計して1日の上限に数える':'')));else L.push('- 予定の入力なし');
   const from=addDays(G.length&&G[0].d<now?G[0].d:now,-6);   // 予定が先でも、直近7日間の登板は必ず入れる
-  L.push('','## 投手ごとの状況（アプリで計算）','「予定日に投げられる球数」は、それまでに投げなかった場合の、その日の最大球数です。'+(o.hide?'選手の名前は伏せています。':''));
+  L.push('','## 投手ごとの状況（アプリで計算）','「予定日に投げられる最大球数」は、それまでに投げなかった場合の、その日の試合を合計した最大の球数です。'+(o.hide?'選手の名前は伏せています。':''));
   D.players.forEach((p,i)=>{const cls=clsName(p).slice(1);
     if(o.ex.indexOf(p.id)>=0){L.push('- '+name(p,i)+(cls?'（'+cls+'）':'')+'：今回は起用しない');return;}
     const os=D.outings.filter(x=>x.pid===p.id&&x.date>=from&&x.date<=now).sort((a,b)=>a.date<b.date?-1:1),by={};
     os.forEach(x=>{by[x.date]=(by[x.date]||0)+x.n;});
     const rec=Object.keys(by).map(d=>md(d)+' '+by[d]+'球').join('、');
     L.push('- '+name(p,i)+(cls?'（'+cls+'）':'')+'：直近の登板 '+(rec||'なし')+(rec?'（計'+os.reduce((a,x)=>a+x.n,0)+'球）':''));
-    if(G.length)L.push('  予定日に投げられる球数：'+G.map(g=>{const s=stat(p,g.d);return md(g.d)+' '+(s.rest?'投げられない（休養日。'+md(s.rest.from)+'から）':s.rem<=0?'投げられない（'+s.bind.k.replace('今日','1日')+'の上限）':s.rem===Infinity?'制限なし':s.rem+'球');}).join('、'));});
+    if(G.length)L.push('  予定日に投げられる最大球数：'+G.map(g=>{const s=stat(p,g.d);return md(g.d)+' '+(s.blocked?'投げられない（'+mask(why(p,s,g.d)||'上限')+'）':s.rem===Infinity?'制限なし':s.rem+'球'+(s.bind&&s.bind.k==='3連投'?'（3連投の日）':''));}).join('、'));});
   return L.join('\n');
 }
 function consultHTML(){
@@ -437,12 +440,12 @@ function consultHTML(){
   if(o.q==='free')h+='<label class="fld" for="cq-free">相談したいこと<textarea id="cq-free" rows="3" maxlength="300" placeholder="例：土曜に2試合あるとき、誰を2試合目に残せばいい？">'+esc(o.free)+'</textarea></label>';
   h+='<p class="lab">予定の試合</p><div class="sched">'+o.games.map((g,i)=>'<div class="sg"><input type="date" data-cg="d" data-i="'+i+'" value="'+esc(g.d)+'" min="'+today()+'" aria-label="試合の日"><select data-cg="n" data-i="'+i+'" aria-label="試合数"><option value="1"'+(g.n==1?' selected':'')+'>1試合</option><option value="2"'+(g.n==2?' selected':'')+'>2試合</option><option value="3"'+(g.n==3?' selected':'')+'>3試合</option></select><input data-cg="m" data-i="'+i+'" maxlength="12" placeholder="メモ（例：準決勝）" value="'+esc(g.m)+'" aria-label="メモ"><button data-act="cqdel" data-i="'+i+'" aria-label="この予定を消す">×</button></div>').join('')+'</div>'+
     (o.games.length<7?'<button class="btn sm" data-act="cqadd" style="align-self:flex-start">＋ 試合の日を追加</button>':'');
-  h+='<p class="lab">今回は投げさせない投手（タップで外す）</p><div class="chips">'+D.players.map(p=>'<button class="chip'+(o.ex.indexOf(p.id)>=0?' ex':'')+'" data-act="cqex" data-id="'+p.id+'" aria-pressed="'+(o.ex.indexOf(p.id)>=0)+'">'+esc(label(p))+'</button>').join('')+'</div>';
+  h+='<p class="lab">今回は投げさせない投手（タップで外す）</p><div class="chips">'+D.players.map(p=>'<button class="chip'+(o.ex.indexOf(p.id)>=0?' ex':'')+'" data-act="cqex" data-id="'+esc(p.id)+'" aria-pressed="'+(o.ex.indexOf(p.id)>=0)+'">'+esc(label(p))+'</button>').join('')+'</div>';
   h+='<input id="cq-feel" class="cqin" maxlength="80" aria-label="条件・悩み" placeholder="条件・悩み（例：日曜の決勝は田中を先発にしたい）" value="'+esc(o.feel)+'">';
   h+='<label class="ck"><input type="checkbox" id="cq-hide"'+(o.hide?' checked':'')+'> 選手の名前を伏せる（「投手A」などとして渡す）</label>';
   h+='<textarea id="cq-text" class="cqtext" rows="6" aria-label="AIへの質問文">'+esc(txt)+'</textarea>'+
     '<button class="btn primary wide" data-act="cqsend">質問文をコピーして、AIアプリに送る</button><p class="aimsg" role="status">'+esc(ui.cqMsg||'')+'</p>'+
-    '<p class="muted">質問と、投手ごとの直近の登板・予定日に投げられる球数・団体のルールをまとめた相談用の文章を作ります。上限や休養日はこのアプリが計算した数字を渡します。AIの案は、起用する前にこの画面で確かめてください。<b>肩やひじに痛み・違和感がある選手は、AIに相談せず、投げさせないでください。</b></p></section>';
+    '<p class="muted">質問と、投手ごとの直近の登板・予定日に投げられる最大球数・団体のルールをまとめた相談用の文章を作ります。上限や休養日はこのアプリが計算した数字を渡します。AIの案は、起用する前にこの画面で確かめてください。<b>肩やひじに痛み・違和感がある選手は、AIに相談せず、投げさせないでください。</b></p></section>';
   return h;
 }
 function cqRefresh(){save();if(ui.cqEdited==null){const t=$('#cq-text');if(t)t.value=cqText();}}
@@ -515,7 +518,7 @@ document.addEventListener('click',async e=>{
   else if(a==='epok'){const p=pl(ui.sheet.pid),nm=$('#ep-name').value.trim();if(!nm){toast('名前を入れてください');return;}p.name=nm;p.no=$('#ep-no').value.trim();const c=$('#ep-cls');if(c)p.cls=c.value;save();closeSheet();render();}
   else if(a==='delp'){const p=pl(ui.sheet.pid);confirmSheet(label(p)+'を削除しますか？登板の記録も消えます。','削除する',()=>{D.players=D.players.filter(x=>x!==p);D.outings=D.outings.filter(o=>o.pid!==p.id);if(D.live&&D.live.cur===p.id)D.live.cur=null;if(D.live)D.live.hist=D.live.hist.filter(x=>x!==p.id);save();render();},true);}
   else if(a==='addo'){if(!D.players.length){toast('先に投手を登録してください');return;}ui.sheet={};
-    sheet('<h3>登板を追加</h3><div class="grid2"><label class="fld">日付<input type="date" id="ao-date" value="'+today()+'"></label><label class="fld">球数<input id="ao-n" type="number" inputmode="numeric" min="1" max="300"></label></div><label class="fld">投手<select id="ao-p">'+D.players.map(p=>'<option value="'+p.id+'">'+esc(label(p))+'</option>').join('')+'</select></label><label class="fld">相手・メモ<input id="ao-opp" maxlength="20"></label><div class="row"><button class="btn" data-act="close">やめる</button><button class="btn primary" data-act="aook">追加</button></div>');}
+    sheet('<h3>登板を追加</h3><div class="grid2"><label class="fld">日付<input type="date" id="ao-date" value="'+today()+'"></label><label class="fld">球数<input id="ao-n" type="number" inputmode="numeric" min="1" max="300"></label></div><label class="fld">投手<select id="ao-p">'+D.players.map(p=>'<option value="'+esc(p.id)+'">'+esc(label(p))+'</option>').join('')+'</select></label><label class="fld">相手・メモ<input id="ao-opp" maxlength="20"></label><div class="row"><button class="btn" data-act="close">やめる</button><button class="btn primary" data-act="aook">追加</button></div>');}
   else if(a==='aook'){const n=parseInt($('#ao-n').value,10),d=$('#ao-date').value;if(!(n>0&&n<=300)||!d){toast('日付と球数を入れてください');return;}
     D.outings.push({id:uid(),pid:$('#ao-p').value,date:d,n,opp:$('#ao-opp').value.trim()});save();closeSheet();toast('追加しました');render();}
   else if(a==='edito'){const o=D.outings.find(x=>x.id===id);if(!o)return;ui.sheet={oid:id};
@@ -531,8 +534,9 @@ document.addEventListener('click',async e=>{
 document.addEventListener('submit',e=>{
   e.preventDefault();const f=e.target.dataset.form;
   if(f==='addp'){const nm=$('#np-name').value.trim();if(!nm)return;const c=$('#np-cls');D.players.push({id:uid(),name:nm,no:$('#np-no').value.trim(),cls:c?c.value:''});save();toast(nm+'を追加しました');render();const i=$('#np-name');if(i)i.focus();}
-  else if(f==='start'){const pid=ui.pick||(D.players.length===1?D.players[0].id:null);
-    D.live={id:uid(),date:$('#st-date').value||today(),opp:$('#st-opp').value.trim(),cur:pid,hist:[]};ui.pick=null;save();render();}
+  else if(f==='start'){const pid=ui.pick||(D.players.length===1?D.players[0].id:null),date=$('#st-date').value||today(),opp=$('#st-opp').value.trim();
+    const go=()=>{D.live={id:uid(),date,opp,cur:pid,hist:[]};ui.pick=null;save();render();},p=pl(pid),st=p&&stat(p,date);
+    if(st&&st.blocked)confirmSheet(label(p)+'は'+md(date)+'に投げられない状態です（'+(why(p,st,date)||'上限に達しています')+'）。このまま先発にしますか？','先発にする',go);else go();}
   else if(f==='custom'){const g=id=>{const n=parseInt($(id).value,10);return n>0?String(Math.min(999,n)):'';};D.custom={day:g('#cu-day'),two:g('#cu-two'),week:g('#cu-week')};save();toast('上限を保存しました');render();}
 });
 document.addEventListener('input',e=>{const el=e.target;if(!D.cq)return;
@@ -542,6 +546,7 @@ document.addEventListener('input',e=>{const el=e.target;if(!D.cq)return;
   else if(el.dataset.cg==='m'){const g=D.cq.games[+el.dataset.i];if(g){g.m=el.value;cqRefresh();}}});
 document.addEventListener('change',e=>{
   const el=e.target;
+  if(el.id==='st-date'){const c=$('#st-chips');if(c)c.innerHTML=pitcherChips(ui.pick,el.value||today(),'pick');return;}
   if(el.id==='cq-hide'&&D.cq){D.cq.hide=el.checked;ui.cqEdited=null;cqRefresh();return;}
   if(el.dataset&&(el.dataset.cg==='d'||el.dataset.cg==='n')&&D.cq){const g=D.cq.games[+el.dataset.i];if(!g)return;
     if(el.dataset.cg==='d'){if(!el.value||el.value<today()){el.value=g.d;toast('今日より後の日を選んでください');return;}g.d=el.value;}else g.n=+el.value;
