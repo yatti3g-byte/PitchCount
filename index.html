@@ -42,8 +42,13 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;touch-action:manipulation}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 #main{max-width:540px;margin:0 auto;padding:12px 14px 40px;display:flex;flex-direction:column;gap:12px}
-.mast{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.mast h1{font-size:20px;font-weight:700;margin:4px 0 0}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.apphead{display:flex;align-items:center;gap:8px}
+.apphead .series-tag{display:block;font-size:12px;color:var(--muted);font-weight:400;line-height:1.3}
+.applogo{flex:none}.applogo .lb{fill:#cfe3d6}.applogo .lh{fill:#2f7d4f}.applogo .lp{fill:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .applogo .lb{fill:#33423a}:root:not([data-theme=light]) .applogo .lh{fill:#58b87e}}
+:root[data-theme=dark] .applogo .lb{fill:#33423a}:root[data-theme=dark] .applogo .lh{fill:#58b87e}
+.mast h1{font-size:20px;font-weight:700;margin:4px 0 0;line-height:1.2}
 .mast small{color:var(--muted);font-size:13px}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px}
 .tabs button{border:0;background:none;border-radius:7px;padding:8px 0;font-weight:700;color:var(--muted);min-height:40px}
@@ -267,7 +272,7 @@ const remText=s=>s.rem===Infinity?'制限なし':'あと'+s.rem+'球';
 /* ---------- 画面 ---------- */
 function render(){
   const tabs=[['board','登板可否'],['count','数える'],['history','履歴'],['settings','設定']];
-  let h='<header class="mast"><h1>PitchCount</h1><small>'+(rule()?esc(shortRule())+'　':'')+'<a class="helpl" href="help.html" target="_blank" rel="noopener">使い方</a></small></header>'+
+  let h='<header class="mast"><div class="apphead"><svg class="applogo" width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><rect class="lh" x="25" y="7" width="14" height="14" rx="3" transform="rotate(45 32 14)"/><rect class="lb" x="7" y="25" width="14" height="14" rx="3" transform="rotate(45 14 32)"/><rect class="lb" x="43" y="25" width="14" height="14" rx="3" transform="rotate(45 50 32)"/><path class="lp" d="M24.5 44 H39.5 V51 L32 58 L24.5 51 Z"/></svg><h1>PitchCount<span class="series-tag">DugoutTools</span></h1></div><small>'+(rule()?esc(shortRule())+'　':'')+'<a class="helpl" href="help.html" target="_blank" rel="noopener">使い方</a></small></header>'+
     '<nav class="tabs" role="tablist">'+tabs.map(t=>'<button role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.view===t[0])+'">'+t[1]+(t[0]==='count'&&D.live?' ●':'')+'</button>').join('')+'</nav>';
   if(noStore)h+='<p class="banner">この画面では記録を保存できません。閉じると消えます。</p>';
   if(D.players.some(p=>p.sample)&&!ui.tour)h+='<div class="samplebar"><span>見本のデータが入っています</span><button class="btn sm" data-act="sdel">見本を消す</button></div>';
@@ -309,9 +314,9 @@ function board(){
 // DugoutTools シリーズ（全アプリの末尾に同じ一覧を置く）
 const SERIES=[
   {n:'TapScore',url:'https://yatti3g-byte.github.io/TapScore/',d:'1球ずつタップして記録するスコアブック'},
-  {n:'FormNote',url:'https://yatti3g-byte.github.io/form-note/',d:'コマ送りと角度の測定で、投げ方・打ち方をチェック'},
-  {n:'ShotFind',url:'https://yatti3g-byte.github.io/ShotFind/',d:'チームの試合写真から、わが子が写っている写真だけを探す'},
-  {n:'PitchCount',url:'',d:'このアプリ。球数制限に合わせた球数カウンター'}];
+  {n:'PitchCount',url:'',d:'球数制限に合わせた球数カウンター'},
+  {n:'FormNote',url:'https://yatti3g-byte.github.io/form-note/',d:'コマ送りと角度の測定で、フォームを確認'},
+  {n:'ShotFind',url:'https://yatti3g-byte.github.io/ShotFind/',d:'チームの試合写真から、わが子の写真を探す'}];
 const VERSION='1.0';
 const coffee=()=>'<a class="coffee" href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ DugoutToolsは無料です。役に立ったら、開発をコーヒー1杯で応援できます（Buy Me a Coffee）</a>';
 function meter(i){const r=Math.min(1,i.u/i.l),lv=i.u>=i.l?'over':r>=.8?'warn':'ok';
@@ -397,12 +402,12 @@ function settings(){
     '<li>ボーイズ：2022年のガイドライン。1日80球、連続する2日間で120球以内。連続2日間で80球を超えたら3日目は投球禁止、3連投は1日40球以内、4連投は禁止。</li>'+
     '<li>リトルリーグ：1日の上限はメジャー85球・マイナー75球・インターメディエート95球。休養日は世界リトルリーグの規定（21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日）で計算しています。</li>'+
     '<li>「1週間」は、その日を含む直近7日間で計算しています。大会によって数え方や上限が違うことがあるので、大会要項を確かめてください。</li></ul></section>';
-  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこのスマホのブラウザに保存します。LINEで共有したとき、AI相談の文をAIアプリに渡したとき、控えファイルを送ったときは、自分が選んだ相手に内容が渡ります。<a href="help.html#data" target="_blank" rel="noopener">くわしく</a>機種変更やもしもの時のために、控えをとっておけます。</p>'+
+  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこのスマホのブラウザに保存します。LINEで共有したとき、AI相談の文をAIアプリに渡したとき、控えファイルを送ったときは、自分が選んだ相手に内容が渡ります。機種変更やもしもの時のために、控えをとっておけます。<a href="help.html#data" target="_blank" rel="noopener" style="color:var(--accent)">データの扱いをくわしく</a></p>'+
     '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えで置き換える<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
     '<button class="btn danger" data-act="wipe">すべての記録を消す</button></section>';
-  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>使い方</h2><div class="row"><a class="btn" href="help.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">使い方ページ</a><button class="btn" data-act="tour">チュートリアル</button></div>'+(D.players.some(p=>p.sample)?'<button class="btn" data-act="sdel">見本のデータを消す</button>':'')+'</section>';
-  h+='<section class="card sister"><h2>DugoutToolsのアプリ</h2><p class="muted">少年野球の現場で使える、無料・登録なしの道具</p>'+SERIES.map(x=>'<p>'+(x.url?'<a href="'+x.url+'" target="_blank" rel="noopener">'+x.n+'</a>':'<b>'+x.n+'</b>')+'　'+x.d+'</p>').join('')+'</section>';
-  h+=coffee()+'<p class="muted" style="text-align:center;margin:0">PitchCount '+VERSION+'</p>';
+  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>使い方</h2><div class="row"><a class="btn" href="help.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)">使い方ページ</a><button class="btn" data-act="tour">チュートリアル</button></div>'+(D.players.some(p=>p.sample)?'<button class="btn" data-act="sdel">見本のデータを消す</button>':'')+'</section>';
+  h+='<section class="card sister"><h2>DugoutToolsのアプリ</h2><p class="muted">少年野球の現場で使える、無料・登録なしの道具</p><p class="muted" style="font-size:13px">記録や写真を、こちらのサーバーに送ることはありません。外に出るのは、自分で共有したり、AIアプリに渡したりしたときだけです。</p>'+SERIES.map(x=>'<p>'+(x.url?'<a href="'+x.url+'" target="_blank" rel="noopener">'+x.n+'</a>':'<b>'+x.n+'</b>（このアプリ）')+'　'+x.d+'</p>').join('')+'</section>';
+  h+=coffee()+'<p class="muted" style="text-align:center;margin:0">PitchCount '+VERSION+' · DugoutTools</p>';
   return h;
 }
 

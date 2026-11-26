@@ -22,8 +22,11 @@
 
 ## DugoutToolsのアプリ
 
+少年野球の現場で使える、無料・登録なしの道具
+
 - [TapScore](https://yatti3g-byte.github.io/TapScore/) 1球ずつタップして記録するスコアブック
-- [FormNote](https://yatti3g-byte.github.io/form-note/) コマ送りと角度の測定で、投げ方・打ち方をチェック
-- [ShotFind](https://yatti3g-byte.github.io/ShotFind/) チームの試合写真から、わが子が写っている写真だけを探す
+- PitchCount 球数制限に合わせた球数カウンター（このリポジトリ）
+- [FormNote](https://yatti3g-byte.github.io/form-note/) コマ送りと角度の測定で、フォームを確認
+- [ShotFind](https://yatti3g-byte.github.io/ShotFind/) チームの試合写真から、わが子の写真を探す
 
 DugoutToolsの応援：https://buymeacoffee.com/formnote
