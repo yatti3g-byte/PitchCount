@@ -1,7 +1,7 @@
 // PitchCount：電波がない球場でも開けるように、ページを端末に保存しておく。
 // 電波があるときは新しい版を取りにいき、取れなければ保存しておいた版を出す。
-const CACHE = 'pitchcount-v1';
-const FILES = ['./', './index.html', './og.jpg'];
+const CACHE = 'pitchcount-v2';
+const FILES = ['./', './index.html', './help.html', './og.jpg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

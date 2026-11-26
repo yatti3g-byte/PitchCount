@@ -129,6 +129,23 @@ p{margin:0}
 details summary{cursor:pointer;color:var(--accent);font-weight:700;font-size:14px;padding:6px 0}
 textarea{width:100%;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--paper);color:var(--ink);resize:vertical}
 .sister a{color:var(--accent);font-weight:700;text-decoration:none}
+.helpl{font-size:13px;color:var(--accent);font-weight:700;text-decoration:none;white-space:nowrap}
+.samplebar{display:flex;align-items:center;gap:10px;background:var(--accent2);border:1px solid var(--accent);border-radius:12px;padding:8px 12px;font-size:13px}
+.samplebar span{flex:1}.samplebar .btn{min-height:40px;flex:none}
+#tour{position:fixed;inset:0;z-index:200}
+#tour.do{pointer-events:none}#tour.do .tcard{pointer-events:auto}#tour.do .tspot{outline-color:#ffd23f;animation:tpulse 1.2s ease-in-out infinite}
+@keyframes tpulse{50%{outline-offset:4px}}
+#tour .tmask{position:absolute;inset:0}#tour .tmask.dim{background:rgba(20,28,22,.62)}
+#tour .tspot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(20,28,22,.62);outline:3px solid #fff;transition:all .2s ease;pointer-events:none}
+#tour .tcard{position:fixed;left:12px;right:12px;max-width:520px;margin:0 auto;background:#2f7d4f;color:#fff;border-radius:16px;padding:14px 16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#tour .tcard h3{margin:0 0 4px;font-size:17px}
+#tour .tcard p{margin:0 0 10px;font-size:15px;line-height:1.65}
+#tour .tcard .tn{float:right;font-size:13px;opacity:.8;font-weight:700}
+#tour .tbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#tour .tbar .link{margin-right:auto;background:none;border:0;color:#fff;opacity:.85;text-decoration:underline;font-size:14px;padding:8px 0}
+#tour .tbar .btn{min-height:44px;padding:8px 16px;background:transparent;color:#fff;border-color:rgba(255,255,255,.7)}
+#tour .tbar .btn.primary{background:#fff;color:#2f7d4f;border-color:#fff}
+@media (prefers-reduced-motion:reduce){#tour .tspot{transition:none;animation:none}}
 .coffee{display:block;margin-top:14px;padding:8px 0;font-size:13px;color:var(--muted);text-decoration:none;text-align:center}
 .linebtn{background:#06c755;color:#fff;border-color:#06c755;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 
@@ -194,12 +211,12 @@ function cleanData(d){
   const okId=x=>typeof x==='string'&&/^[A-Za-z0-9_-]{1,40}$/.test(x),seen=new Set();
   const realDay=x=>{if(typeof x!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const t=new Date(x+'T00:00:00');return !isNaN(t)&&ymd(t)===x;};
   const players=d.players.filter(p=>p&&okId(p.id)&&!seen.has(p.id)&&seen.add(p.id)&&typeof p.name==='string'&&p.name.trim())
-    .map(p=>({id:p.id.slice(0,40),name:p.name.trim().slice(0,16),no:String(p.no==null?'':p.no).slice(0,4),cls:typeof p.cls==='string'?p.cls:''}));
+    .map(p=>({id:p.id.slice(0,40),name:p.name.trim().slice(0,16),no:String(p.no==null?'':p.no).slice(0,4),cls:typeof p.cls==='string'?p.cls:'',...(p.sample?{sample:true}:{})}));
   const ids=new Set(players.map(p=>p.id));
   const outings=(Array.isArray(d.outings)?d.outings:[]).filter(o=>o&&ids.has(o.pid)&&realDay(o.date)&&Number.isInteger(o.n)&&o.n>0&&o.n<=300)
-    .map(o=>{const x={id:okId(o.id)?o.id:uid(),pid:o.pid,date:o.date,n:o.n,opp:String(o.opp||'').slice(0,20)};if(okId(o.sid))x.sid=o.sid;return x;});
+    .map(o=>{const x={id:okId(o.id)?o.id:uid(),pid:o.pid,date:o.date,n:o.n,opp:String(o.opp||'').slice(0,20)};if(okId(o.sid))x.sid=o.sid;if(o.sample)x.sample=true;return x;});
   const num=v=>{const n=parseInt(v,10);return n>0?String(Math.min(999,n)):'';},c=d.custom||{};
-  const L=d.live,live=L&&okId(L.id)&&realDay(L.date)?{id:L.id,date:L.date,opp:String(L.opp||'').slice(0,20),cur:ids.has(L.cur)?L.cur:null,hist:(Array.isArray(L.hist)?L.hist:[]).filter(x=>ids.has(x))}:null;
+  const L=d.live,live=L&&okId(L.id)&&realDay(L.date)?{id:L.id,date:L.date,opp:String(L.opp||'').slice(0,20),cur:ids.has(L.cur)?L.cur:null,hist:(Array.isArray(L.hist)?L.hist:[]).filter(x=>ids.has(x)),...(L.sample?{sample:true}:{})}:null;
   const out={v:1,rule:RULES[d.rule]?d.rule:'',custom:{day:num(c.day),two:num(c.two),week:num(c.week)},players,outings,live};
   if(d.cq&&Array.isArray(d.cq.games))out.cq={q:String(d.cq.q||'plan'),games:d.cq.games.filter(g=>g&&realDay(g.d)).map(g=>({d:g.d,n:[1,2,3].indexOf(+g.n)>=0?+g.n:1,m:String(g.m||'').slice(0,12)})),
     feel:String(d.cq.feel||'').slice(0,80),free:String(d.cq.free||'').slice(0,300),hide:d.cq.hide!==false,ex:(Array.isArray(d.cq.ex)?d.cq.ex:[]).filter(x=>ids.has(x))};
@@ -249,21 +266,23 @@ const remText=s=>s.rem===Infinity?'制限なし':'あと'+s.rem+'球';
 /* ---------- 画面 ---------- */
 function render(){
   const tabs=[['board','登板可否'],['count','数える'],['history','履歴'],['settings','設定']];
-  let h='<header class="mast"><h1>PitchCount</h1><small>'+(rule()?esc(shortRule()):'')+'</small></header>'+
+  let h='<header class="mast"><h1>PitchCount</h1><small>'+(rule()?esc(shortRule())+'　':'')+'<a class="helpl" href="help.html" target="_blank" rel="noopener">使い方</a></small></header>'+
     '<nav class="tabs" role="tablist">'+tabs.map(t=>'<button role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(ui.view===t[0])+'">'+t[1]+(t[0]==='count'&&D.live?' ●':'')+'</button>').join('')+'</nav>';
   if(noStore)h+='<p class="banner">この画面では記録を保存できません。閉じると消えます。</p>';
+  if(D.players.some(p=>p.sample)&&!ui.tour)h+='<div class="samplebar"><span>見本のデータが入っています</span><button class="btn sm" data-act="sdel">見本を消す</button></div>';
   if(!D.rule&&ui.view!=='settings')h+=setupRule();
   else if(ui.view==='board')h+=board();
   else if(ui.view==='count')h+=count();
   else if(ui.view==='history')h+=history();
   else h+=settings();
   $('#main').innerHTML=h;
+  if(ui.tour)requestAnimationFrame(tourPlace);
   if(ui.view==='count'&&D.live)keepAwake();else releaseWake();
 }
 function shortRule(){const R=rule();return R?R.name.replace(/（.*$/,''):'';}
 
 function setupRule(){
-  return '<section class="card"><h2>はじめに：どの団体のルールで数えますか？</h2><p class="muted">選ぶと、1日・1週間の上限が自動で入ります。あとから「設定」で変えられます。</p></section>'+ruleList();
+  return '<section class="card"><h2>はじめに：どの団体のルールで数えますか？</h2><p class="muted">選ぶと、1日・1週間の上限が自動で入ります。あとから「設定」で変えられます。選んだあと、見本のデータで1分の体験ができます。</p></section>'+ruleList();
 }
 function ruleList(){
   return '<p class="muted">団体の基本ルールで計算します。大会・地域・カテゴリーで違うことがあるので、大会要項を優先してください。</p><div class="rules">'+Object.keys(RULES).map(k=>'<button class="rule'+(D.rule===k?' on':'')+'" data-act="rule" data-v="'+k+'"><b>'+esc(RULES[k].name)+'</b><small>'+esc(RULES[k].desc)+'</small></button>').join('')+'</div>';
@@ -272,7 +291,7 @@ function ruleList(){
 function board(){
   const d=ui.date,isT=d===today();
   let h='<div class="dbar"><button data-act="day" data-v="-1" aria-label="前の日">◀</button><div class="d">'+md(d)+'<small>'+(isT?'今日':'<button class="btn sm" data-act="day" data-v="0">今日に戻る</button>')+'</small></div><button data-act="day" data-v="1" aria-label="次の日">▶</button></div>';
-  if(!D.players.length)return h+'<section class="card"><h2>投手を登録しましょう</h2><p class="muted">名前と背番号だけで始められます。</p></section>'+playerForm()+'';
+  if(!D.players.length)return h+'<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>はじめての方へ</h2><p class="muted">見本の投手3人で、数え方と画面の見方を1分で体験できます。見本はあとでまとめて消せます。</p><button class="btn primary" data-act="tour">見本で体験する（1分）</button></section><section class="card"><h2>投手を登録しましょう</h2><p class="muted">名前と背番号だけで始められます。</p></section>'+playerForm()+'';
   h+='<ul class="plist">'+D.players.map(p=>{
     const s=stat(p,d),lv=level(s),w=why(p,s,d);
     return '<li class="pc '+lv+'"><span class="no">'+esc(p.no||'–')+'</span><span class="nm">'+esc(p.name)+'</span>'+
@@ -321,7 +340,7 @@ function count(){
   h+='<button class="tap '+lv+'" data-act="plus" aria-label="1球数える"><span class="who">'+esc(label(p))+'</span><span class="n">'+n+'</span><span class="plus">タップで ＋1球</span></button>';
   h+='<p class="state '+lv+'">'+esc(st)+'</p>';
   h+='<div class="row"><button class="btn" data-act="minus"'+(L.hist.length?'':' disabled')+'>1球取り消す</button><button class="btn" data-act="adj">球数を修正</button></div>';
-  if(s.items.length||s.dayU!==n)h+='<section class="card"><div class="meters" style="margin:0">'+s.items.map(meter).join('')+'</div>'+(s.dayU!==n?'<p class="muted" style="margin-top:6px">この日の合計 '+s.dayU+'球（ほかの試合を含む）</p>':'')+'</section>';
+  if(s.items.length||s.dayU!==n)h+='<section class="card cmeters"><div class="meters" style="margin:0">'+s.items.map(meter).join('')+'</div>'+(s.dayU!==n?'<p class="muted" style="margin-top:6px">この日の合計 '+s.dayU+'球（ほかの試合を含む）</p>':'')+'</section>';
   const ids=sessIds();
   if(ids.length)h+='<section class="card"><h2>この試合</h2><ul class="sess">'+ids.map(id=>'<li><span>'+esc(label(pl(id)))+'</span><b>'+sessN(id)+'球</b></li>').join('')+'</ul></section>';
   return h+'</div>';
@@ -336,7 +355,7 @@ const sessIds=()=>D.outings.filter(o=>o.sid===D.live.id&&o.n>0).map(o=>o.pid);
 
 function addPitch(pid,delta){
   const L=D.live;let o=sessOut(pid);
-  if(!o){if(delta<0)return;o={id:uid(),sid:L.id,pid,date:L.date,opp:L.opp,n:0};D.outings.push(o);}
+  if(!o){if(delta<0)return;o={id:uid(),sid:L.id,pid,date:L.date,opp:L.opp,n:0};if(L.sample)o.sample=true;D.outings.push(o);}
   o.n=Math.max(0,o.n+delta);if(!o.n)D.outings=D.outings.filter(x=>x!==o);
 }
 function plus(){
@@ -373,6 +392,7 @@ function settings(){
   h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。機種変更やもしもの時のために、控えをとっておけます。</p>'+
     '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えから戻す<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
     '<button class="btn danger" data-act="wipe">すべての記録を消す</button></section>';
+  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>使い方</h2><div class="row"><a class="btn" href="help.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">使い方ページ</a><button class="btn" data-act="tour">チュートリアル</button></div>'+(D.players.some(p=>p.sample)?'<button class="btn" data-act="sdel">見本のデータを消す</button>':'')+'</section>';
   h+='<section class="card sister"><h2>姉妹アプリ</h2><p><a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>　1球ずつタップして記録するスコアブック</p></section>';
   h+=coffee();
   return h;
@@ -466,6 +486,75 @@ function cqSend(){
   cp.then(ok=>say(w?'ChatGPTを開きました。質問文はコピー済みなので、文章が入っていないときは貼り付けてください。':ok?'質問文をコピーしました。AIアプリ（ChatGPT・Claudeなど）に貼り付けてください。':'質問文を選んでコピーし、AIアプリに貼り付けてください。'));
 }
 
+/* ---------- 見本データ（チュートリアル用。sample の印で、自分の記録と分けて消せる） ---------- */
+function sampleAdd(){
+  if(D.players.some(p=>p.sample))return;
+  const cl=(rule()&&rule().classes)||null,mk=(name,no,c)=>({id:uid(),name,no,cls:c||'',sample:true});
+  const a=mk('見本 大西','1',cl?cl[0][0]:''),b=mk('見本 森田','10',cl?cl[0][0]:''),c=mk('見本 川村','11',cl&&cl[1]?cl[1][0]:''),t=today(),L=lim(b);
+  D.players.push(a,b,c);
+  D.outings.push({id:uid(),pid:a.id,date:addDays(t,-3),n:50,opp:'見本の試合',sample:true},{id:uid(),pid:a.id,date:addDays(t,-1),n:45,opp:'見本の試合',sample:true},
+    {id:uid(),pid:b.id,date:t,n:L.day||L.week||80,opp:'見本の試合',sample:true},{id:uid(),pid:c.id,date:addDays(t,-2),n:35,opp:'見本の試合',sample:true});
+  save();
+}
+function sampleDel(){
+  const ids=new Set(D.players.filter(p=>p.sample).map(p=>p.id));
+  D.players=D.players.filter(p=>!p.sample);D.outings=D.outings.filter(o=>!o.sample&&!ids.has(o.pid));
+  if(D.live&&(D.live.sample||ids.has(D.live.cur)))D.live=null;
+  if(D.cq)D.cq.ex=D.cq.ex.filter(x=>!ids.has(x));
+  save();toast('見本を消しました');ui.view='board';render();
+}
+
+/* ---------- チュートリアル：画面の部分を光らせて、1つずつ案内する ---------- */
+const TOUR=[
+  {v:'board',sel:'.plist .pc',t:'登板可否ボード',b:'投手ごとに、この日あと何球投げられるかが大きく出ます。下のメーターは、1日・1週間などの上限に対して、今どこまで投げたかです。'},
+  {v:'board',sel:'.plist .pc.over',t:'投げられない投手',b:'上限に達した投手や休養日の投手は赤くなり、理由と「次は何日から」が出ます。'},
+  {v:'board',sel:'.dbar',t:'先の日も確かめられる',b:'◀ ▶ で日付を送ると、明日や週末に誰が何球投げられるかがわかります。'},
+  {v:'count',live:1,sel:'.tap',do:1,t:'1球ずつタップ',b:'試合中は、投げるたびにこのボタンをタップします。何回か押してみてください。上限の8割で黄色、上限で赤になり、振動でも知らせます。'},
+  {v:'count',live:1,sel:'.live .row',t:'まちがえたとき',b:'押しすぎたら「1球取り消す」。まとめて直すときは「球数を修正」。'},
+  {v:'count',live:1,sel:'.live .chips',t:'投手交代',b:'次の投手の名前をタップするだけです。投手ごとの球数は別々に数えます。'},
+  {v:'count',live:1,sel:'.cmeters',t:'今日と1週間の残り',b:'この投手が今日・1週間であと何球投げられるかを、メーターで確かめられます。'},
+  {v:'count',live:1,sel:'button[data-act="finish"]',t:'試合終了',b:'試合が終わったら押します。投手ごとの球数と次に投げられる日をまとめた文章ができ、LINEで送れます。'},
+  {v:'board',sel:'.consult .chips',t:'AIに起用を相談',b:'週末の連戦の前に。予定の試合と投げられる球数をまとめた相談文を作り、ChatGPTなどのAIに渡せます。'},
+  {end:1,t:'体験はここまでです',b:'見本のデータを消して、自分のチームの投手を登録しましょう。使い方は、画面上の「使い方」からいつでも見られます。'}];
+function tourStart(){
+  if(!rule()){toast('先に団体のルールを選んでください');return;}
+  sampleAdd();closeSheet();
+  // 自分の試合を数えている途中なら、カウント画面の案内は飛ばす（自分の記録に見本の球を入れない）
+  const steps=TOUR.filter(x=>!x.live||!D.live||D.live.sample);
+  ui.tour={steps,i:0,dir:1};tourShow();
+}
+function tourShow(){
+  const T=ui.tour;if(!T)return;const st=T.steps[T.i];
+  if(st.live&&!D.live){const a=D.players.find(p=>p.sample)||D.players[0];D.live={id:uid(),date:today(),opp:'見本の試合',cur:a.id,hist:[],sample:true};save();}
+  if(st.v&&ui.view!==st.v){ui.view=st.v;if(st.v==='board')ui.date=today();}
+  render();
+  // 光らせる場所が画面にないとき（投げられない投手がいない など）は、その案内を飛ばす
+  if(st.sel&&!$(st.sel)){const n=T.i+T.dir;if(n>=0&&n<T.steps.length){T.i=n;tourShow();return;}}
+  const el=st.sel&&$(st.sel);if(el)el.scrollIntoView({block:'center',behavior:'instant'});
+  tourPlace();
+}
+function tourGo(d){const T=ui.tour;if(!T)return;const n=T.i+d;if(n<0||n>=T.steps.length)return tourEnd();T.i=n;T.dir=d;tourShow();}
+function tourEnd(){
+  ui.tour=null;const o=$('#tour');if(o)o.remove();
+  if(D.live&&D.live.sample){D.live=null;save();}
+  ui.view='board';ui.date=today();render();scrollTo(0,0);
+}
+function tourPlace(){
+  const T=ui.tour;if(!T)return;const st=T.steps[T.i],el=st.sel?$(st.sel):null;
+  let o=$('#tour');if(!o){o=document.createElement('div');o.id='tour';document.body.appendChild(o);}
+  o.className=st.do?'do':'';
+  const btns=st.end?'<button class="link" data-act="tend">見本を残して見る</button><button class="btn primary" data-act="sdel">見本を消して始める</button>'
+    :'<button class="link" data-act="tend">やめる</button>'+(T.i?'<button class="btn" data-act="tback">戻る</button>':'')+'<button class="btn primary" data-act="tnext">'+(T.i===T.steps.length-2?'おわり':'次へ')+'</button>';
+  const card='<div class="tcard" role="dialog" aria-live="polite"><span class="tn">'+(T.i+1)+' / '+T.steps.length+'</span><h3>'+esc(st.t)+'</h3><p>'+esc(st.b)+'</p><div class="tbar">'+btns+'</div></div>';
+  if(!el){o.innerHTML='<div class="tmask dim"></div>'+card;const c=o.querySelector('.tcard');c.style.top='28%';return;}
+  const r=el.getBoundingClientRect(),pd=6,H=innerHeight;
+  o.innerHTML=(st.do?'':'<div class="tmask"></div>')+'<div class="tspot" style="top:'+(r.top-pd)+'px;left:'+(r.left-pd)+'px;width:'+(r.width+pd*2)+'px;height:'+(r.height+pd*2)+'px"></div>'+card;
+  const c=o.querySelector('.tcard'),ch=c.offsetHeight;
+  if(r.bottom+pd+12+ch<=H)c.style.top=(r.bottom+pd+12)+'px';
+  else if(r.top-pd-12-ch>=0)c.style.top=(r.top-pd-12-ch)+'px';
+  else c.style.bottom='12px';
+}
+
 /* ---------- シート（確認・編集） ---------- */
 function sheet(html){const s=$('#sheet');s.innerHTML='<div class="panel" role="dialog" aria-modal="true">'+html+'</div>';s.hidden=false;const f=s.querySelector('input');if(f)setTimeout(()=>f.focus(),50);}
 function closeSheet(){$('#sheet').hidden=true;$('#sheet').innerHTML='';ui.sheet=null;}
@@ -501,6 +590,11 @@ document.addEventListener('click',async e=>{
   else if(a==='cqadd'){const o=cq(),last=o.games.length?o.games[o.games.length-1].d:today();o.games.push({d:addDays(last,1),n:1,m:''});ui.cqEdited=null;save();render();}
   else if(a==='cqdel'){cq().games.splice(+b.dataset.i,1);ui.cqEdited=null;save();render();}
   else if(a==='cqsend')cqSend();
+  else if(a==='tour')tourStart();
+  else if(a==='tnext')tourGo(1);
+  else if(a==='tback')tourGo(-1);
+  else if(a==='tend')tourEnd();
+  else if(a==='sdel'){if(ui.tour){sampleDel();tourEnd();}else confirmSheet('見本の投手と記録を消しますか？自分で入れた記録は消えません。','見本を消す',sampleDel,true);}
   else if(a==='plus')plus();
   else if(a==='minus')minus();
   else if(a==='adj'){const p=pl(D.live.cur);if(!p)return;ui.sheet={adj:p.id};
@@ -562,7 +656,8 @@ document.addEventListener('change',e=>{
   fr.readAsText(e.target.files[0]);e.target.value='';
 });
 $('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#sheet').hidden)closeSheet();else if(ui.tour)tourEnd();});
+addEventListener('resize',()=>{if(ui.tour)tourPlace();});addEventListener('scroll',()=>{if(ui.tour)tourPlace();},{passive:true});
 render();
 // 一度開いたら、電波がない球場でも開き直せるように（https の公開ページだけ。claude.ai のプレビューでは使わない）
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&window.self===window.top)navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PitchCount 使い方</title>
+<meta name="theme-color" content="#f6f5f0">
+<meta name="description" content="少年野球の球数カウンター PitchCount の使い方。団体のルール選び、投手の登録、試合中の数え方、登板可否ボードの見方、AIへの起用相談、データの控えまで。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PitchCount 使い方">
+<meta property="og:description" content="少年野球の球数カウンター PitchCount の使い方。">
+<meta property="og:url" content="https://yatti3g-byte.github.io/PitchCount/help.html">
+<meta property="og:image" content="https://yatti3g-byte.github.io/PitchCount/og.jpg">
+<meta property="og:locale" content="ja_JP">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<style>
+/* PitchCount 本体と同じ色・文字。1段組みで、上から読めば使えるようになる順に並べる */
+:root{--paper:#f6f5f0;--surface:#fff;--ink:#1f2a22;--muted:#6b756e;--line:#d9d8d0;--accent2:#e8f3ec;--wn:#fff4d6;--accent:#2f7d4f;--lamp-s:#e0b000;--lamp-o:#d8432e;
+  --font:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 var(--font);-webkit-text-size-adjust:100%;overflow-x:clip}
+main{max-width:640px;margin:0 auto;padding:16px 16px 56px}
+a{color:var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.top a{font-weight:700;text-decoration:none}
+h1{font-size:30px;line-height:1.2;margin:18px 0 6px}
+.lead{color:var(--muted);margin:0 0 16px}
+h2{font-size:20px;line-height:1.4;margin:36px 0 10px;padding-top:14px;border-top:2px solid var(--line)}
+h3{font-size:16px;margin:18px 0 4px}
+p{margin:0 0 10px}
+.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;padding:0;list-style:none}
+.toc a{display:inline-block;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:14px;text-decoration:none;font-weight:700}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:s}
+.steps li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 52px;position:relative;counter-increment:s}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;display:grid;place-items:center}
+.steps b{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.note{background:var(--wn);border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
+ul.dots{margin:0 0 10px;padding-left:20px}
+ul.dots li{margin:2px 0}
+.lamps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
+.lamps div{border-radius:12px;padding:10px;text-align:center;font-weight:700;font-size:14px;color:#fff;background:var(--accent)}
+.lamps div:nth-child(2){background:var(--lamp-s);color:#2a2104}.lamps div:nth-child(3){background:var(--lamp-o)}
+.lamps small{display:block;font-weight:500;font-size:12px}
+dl{margin:0}dt{font-weight:700;margin-top:14px}dd{margin:2px 0 0}
+.go{display:block;text-align:center;background:var(--accent);color:#fff;border-radius:12px;padding:14px;font-weight:700;text-decoration:none;margin:28px 0 10px}
+.foot{font-size:13px;color:var(--muted);text-align:center}
+.foot a{color:var(--muted)}
+kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:var(--surface);white-space:nowrap}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><a href="index.html">‹ PitchCountを開く</a><span class="foot">無料・登録なし</span></div>
+<h1>PitchCount 使い方</h1>
+<p class="lead">試合中は1球ずつタップして数えるだけ。団体の球数制限に合わせて、投手ごとに「今日あと何球」「次はいつ投げられるか」をアプリが計算します。</p>
+<ul class="toc">
+  <li><a href="#start">はじめる</a></li><li><a href="#count">試合で数える</a></li><li><a href="#board">登板可否ボード</a></li>
+  <li><a href="#history">履歴</a></li><li><a href="#ai">AIに相談</a></li><li><a href="#data">データと控え</a></li><li><a href="#faq">よくある質問</a></li>
+</ul>
+
+<h2 id="start">3つの手順ではじめる</h2>
+<ol class="steps">
+  <li><b>団体のルールを選ぶ</b>学童・中学軟式・高校・ボーイズ・リトルリーグから選びます。大会やチームの約束で数える場合は「自分で決める」で上限を入れます。</li>
+  <li><b>投手を登録する</b>名前と背番号だけで始められます。学童は「4年生以下」、リトルは「マイナー」などの区分も選べ、区分で上限が変わります。</li>
+  <li><b>試合で数える</b>「数える」タブで先発投手を選んで「カウントを始める」。あとは投げるたびにタップします。</li>
+</ol>
+<p class="note">はじめての方は、投手を登録する前の画面にある<b>「見本で体験する（1分）」</b>がおすすめです。見本の投手3人で、画面の見方と数え方を順番に案内します。見本はあとでまとめて消せます。チュートリアルは「設定」からいつでももう一度見られます。</p>
+
+<h2 id="count">試合で数える</h2>
+<h3>1球ずつタップ</h3>
+<p>画面の大きなボタンを、投げるたびに1回タップします。ボタンの数字は、この試合でその投手が投げた球数です。指が2回当たってしまっても、0.4秒以内の2回目は数えません。</p>
+<div class="lamps"><div>緑<small>まだ余裕あり</small></div><div>黄<small>上限の8割</small></div><div>赤<small>上限に到達</small></div></div>
+<p>上限の8割と上限に達したときは、色が変わり、スマホが振動して知らせます（振動はAndroidのみ。iPhoneは色と表示で知らせます）。</p>
+<h3>まちがえたとき</h3>
+<ul class="dots">
+  <li><kbd>1球取り消す</kbd>　直前の1球を取り消します。続けて押すと、さらに前の1球を取り消します。</li>
+  <li><kbd>球数を修正</kbd>　スコアブックと合わせるときなど、この試合の球数を数字で直します。</li>
+</ul>
+<h3>投手交代</h3>
+<p>ボタンの上に並んでいる投手の名前をタップするだけです。球数は投手ごとに別々に数えます。投げられない状態の投手を選ぶと、確認が出ます。</p>
+<h3>上限を超えたとき</h3>
+<p>PitchCountは、実際に投げた球をそのまま記録するアプリです。上限に達しても数えるのは止めません。打者との対戦が終わるまでの数球なども、事実として残ります。上限を超えた分は「上限に達し、3球超えています」のように表示されます。</p>
+<h3>試合終了</h3>
+<p><kbd>試合終了</kbd>を押すと、投手ごとの球数と、次に投げられる日をまとめた文章ができます。<kbd>LINEで送る</kbd>か<kbd>コピー</kbd>で、チームのグループに共有できます。カウント中はスマホの画面が暗くならないようにしています。</p>
+
+<h2 id="board">登板可否ボードの見方</h2>
+<p>投手ごとに1枚のカードで、この日あと何球投げられるかを大きく表示します。</p>
+<div class="card">
+  <ul class="dots">
+    <li><b>大きな数字</b>　この日に投げられる残りの球数。いちばん厳しい上限（1日・連続2日・1週間など）で計算します。</li>
+    <li><b>メーター</b>　それぞれの上限に対して、今どこまで投げたか。</li>
+    <li><b>投げられない</b>　上限に達した、休養日、連投の制限などで投げられない日は赤くなり、理由と「次は何日から何球まで」が出ます。</li>
+  </ul>
+</div>
+<p>上の <kbd>◀</kbd> <kbd>▶</kbd> で日付を送ると、明日や週末に誰が何球投げられるかを確かめられます。<kbd>LINEで共有</kbd>で、その日の一覧を送れます。</p>
+
+<h2 id="history">履歴（あとから入れる・直す）</h2>
+<p>「履歴」タブに、日付ごとの登板が並びます。タップすると、球数・日付・相手を直したり、削除したりできます。</p>
+<p>練習試合で数え忘れた登板や、別の記録から写す登板は、<kbd>登板を手で追加</kbd>から入れてください。入れた分も「1週間」などの合計に入ります。</p>
+
+<h2 id="ai">AIに起用を相談</h2>
+<p>登板可否ボードのいちばん下にあります。週末の連戦の前に、どの投手をどの試合に何球くらい投げさせるかを、ChatGPTやClaudeなどのAIに相談するための文章を作ります。</p>
+<ol class="steps">
+  <li><b>相談したいことを選ぶ</b>「予定の試合の起用を組みたい」「大事な試合に投手を残したい」など。自分で書くこともできます。</li>
+  <li><b>予定の試合を入れる</b>日付と試合数（1日2試合にも対応）、「準決勝」などのメモ。</li>
+  <li><b>今回は投げさせない投手を外す</b>タップした投手は相談に入れません。理由は書かずに「起用しない」とだけ伝えます。</li>
+  <li><b>送る</b><kbd>質問文をコピーして、AIアプリに送る</kbd>。スマホでは共有画面が、パソコンではChatGPTが開きます。</li>
+</ol>
+<p>上限や休養日は、アプリが計算した数字をそのまま渡すので、AIの計算ミスで上限を超える案が出にくい作りです。「選手の名前を伏せる」にチェックすると、「投手A」などに置きかえて渡します。</p>
+<p class="note"><b>肩やひじに痛み・違和感がある選手は、AIに相談せず、投げさせないでください。</b>AIの案は、起用する前に登板可否ボードで確かめてください。</p>
+
+<h2 id="data">データと控え</h2>
+<p>記録はこのスマホのブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。</p>
+<ul class="dots">
+  <li><b>控えを作る</b>　「設定」の<kbd>控えを作る</kbd>で、記録を1つのファイルにして保存できます。ブラウザのデータを消したり、スマホをなくしたりしても、控えがあれば戻せます。</li>
+  <li><b>控えから戻す</b>　「設定」の<kbd>控えから戻す</kbd>でファイルを選ぶと、記録がその控えの内容に置きかわります。置きかえる前の記録も、念のため1つ残します。</li>
+</ul>
+
+<h2 id="faq">よくある質問</h2>
+<dl>
+  <dt>けん制やボークは数えますか？</dt>
+  <dd>けん制や野手への送球は数えません。ボークでも投げた球は、全軟連（学童・中学軟式）の運用では数えます。ほかの団体は大会要項で確かめてください。</dd>
+  <dt>「1週間」はどう数えていますか？</dt>
+  <dd>その日を含む直近7日間の合計です。高校の「1週間500球」は公式大会の日程で数えるので、アプリの数字は参考値として使ってください。</dd>
+  <dt>団体のルールと大会のルールが違います。</dt>
+  <dd>大会要項を優先してください。数字が違う場合は、「設定」の「自分で決める」で、1日・連続2日・1週間の上限を入れられます。</dd>
+  <dt>ボーイズの連投はどう判定していますか？</dt>
+  <dd>2022年のガイドラインに合わせて、1日80球、連続2日で120球、連続2日で80球を超えたら3日目は投げられない、3連投の日は40球まで、4連投は禁止、で判定しています。</dd>
+  <dt>電波のない球場でも使えますか？</dt>
+  <dd>一度開いておけば、電波がなくても開けます。記録もスマホの中に保存されます。</dd>
+  <dt>ホーム画面に置けますか？</dt>
+  <dd>iPhoneはSafariの共有ボタンから「ホーム画面に追加」、AndroidはChromeのメニューから「ホーム画面に追加」で、アプリのように開けます。</dd>
+  <dt>2台のスマホで同じ記録を見られますか？</dt>
+  <dd>記録はスマホごとに保存されるので、自動では同じになりません。スマホを替えるときは、前のスマホで「控えを作る」、新しいスマホで「控えから戻す」を使ってください。試合ごとの球数は「試合終了」のあとにLINEで共有できます。</dd>
+  <dt>ルールの出典はどこで見られますか？</dt>
+  <dd>「設定」の「ルールの出典」に、団体ごとの根拠と確認した日を載せています。</dd>
+</dl>
+
+<a class="go" href="index.html">PitchCountを開く</a>
+<p class="foot">姉妹アプリ：<a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>（1球ずつタップして記録するスコアブック）<br>
+<a href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ 役に立ったら、開発をコーヒー1杯で応援できます</a></p>
+</main>
+</body>
+</html>
