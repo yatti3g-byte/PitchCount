@@ -12,7 +12,8 @@
 <meta property="og:url" content="https://yatti3g-byte.github.io/PitchCount/help.html">
 <meta property="og:image" content="https://yatti3g-byte.github.io/PitchCount/og.jpg">
 <meta property="og:locale" content="ja_JP">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* PitchCount 本体と同じ色・文字。1段組みで、上から読めば使えるようになる順に並べる */
 :root{--paper:#f6f5f0;--surface:#fff;--ink:#1f2a22;--muted:#6b756e;--line:#d9d8d0;--accent2:#e8f3ec;--wn:#fff4d6;--accent:#2f7d4f;--accent-ink:#fff;--lamp-s:#e0b000;--lamp-o:#d8432e;
@@ -59,7 +60,7 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
 <p class="lead">試合中は1球ずつタップして数えるだけ。団体の球数制限に合わせて、投手ごとに「今日あと何球」「次はいつ投げられるか」をアプリが計算します。</p>
 <ul class="toc">
   <li><a href="#start">はじめる</a></li><li><a href="#count">試合で数える</a></li><li><a href="#board">登板可否ボード</a></li>
-  <li><a href="#history">履歴</a></li><li><a href="#ai">AIに相談</a></li><li><a href="#data">データと控え</a></li><li><a href="#faq">よくある質問</a></li>
+  <li><a href="#history">履歴</a></li><li><a href="#ai">AIに相談</a></li><li><a href="#data">データの扱い</a></li><li><a href="#faq">よくある質問</a></li>
 </ul>
 
 <h2 id="start">3つの手順ではじめる</h2>
@@ -113,8 +114,21 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
 <p>上限や休養日は、アプリが計算した数字をそのまま渡すので、AIの計算ミスで上限を超える案が出にくい作りです。「選手の名前を伏せる」にチェックすると、「投手A」などに置きかえて渡します。</p>
 <p class="note"><b>肩やひじに痛み・違和感がある選手は、AIに相談せず、投げさせないでください。</b>AIの案は、起用する前に登板可否ボードで確かめてください。</p>
 
-<h2 id="data">データと控え</h2>
-<p>記録はこのスマホのブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。</p>
+<h2 id="data">データの扱い</h2>
+<h3>どこで処理するか</h3>
+<p>球数の計算と、投げられるかの判定は、すべてこのスマホのブラウザの中で行います。</p>
+<h3>この端末に保存するもの</h3>
+<ul class="dots">
+  <li>投手、登板の記録、選んだルール、AI相談の予定と条件を、このブラウザに保存します。</li>
+  <li>控えファイルは、自分で作ったときだけできます。</li>
+  <li>ブラウザのデータを消すと記録も消えるので、控えファイルを作っておいてください。</li>
+</ul>
+<h3>外と通信するとき</h3>
+<ul class="dots">
+  <li>ページを開くときに、アプリ本体を読み込みます。一度開けば、電波がなくても開けます。</li>
+  <li>LINEで共有したとき、AI相談の文をAIアプリに渡したとき、控えファイルを送ったときは、自分が選んだ相手に内容が渡ります。</li>
+</ul>
+<h3>控えファイル</h3>
 <ul class="dots">
   <li><b>控えを作る</b>　「設定」の<kbd>控えを作る</kbd>で、記録を1つのファイルにします。スマホでは共有画面が開くので、Googleドライブ・iCloud・LINEのKeepなどに保存してください。ブラウザのデータを消したり、スマホをなくしたりしても、控えがあれば戻せます。</li>
   <li><b>控えで置き換える</b>　「設定」の<kbd>控えで置き換える</kbd>でファイルを選ぶと、このスマホの記録がその控えの内容に<b>置き換わります</b>（TapScoreのように、手元の記録と合わせるのではありません）。置き換える前の記録も、念のため1つ残します。</li>
@@ -141,7 +155,7 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
 </dl>
 
 <a class="go" href="index.html">PitchCountを開く</a>
-<p class="foot">PitchCount は、少年野球の現場で使える無料アプリのシリーズ <b>DugoutTools</b> のひとつです。<br>
+<p class="foot">PitchCount は、少年野球の現場で使える、無料・登録なしの道具 <b>DugoutTools</b> のひとつです。<br>
 <a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>（スコアブック）・<a href="https://yatti3g-byte.github.io/form-note/">FormNote</a>（フォームチェック）・<a href="https://yatti3g-byte.github.io/ShotFind/">ShotFind</a>（わが子の写真探し）・PitchCount（球数カウンター）<br>
 <a href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ DugoutToolsを、コーヒー1杯で応援できます</a></p>
 </main>

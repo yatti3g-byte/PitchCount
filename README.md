@@ -1,6 +1,6 @@
 # PitchCount
 
-1球ずつタップして数える、少年野球の無料の球数カウンター。少年野球の無料アプリのシリーズ **DugoutTools** のひとつです。
+1球ずつタップして数える、少年野球の無料の球数カウンター。少年野球の現場で使える、無料・登録なしの道具 **DugoutTools** のひとつです。
 
 - タップで1球ずつ数える（上限の8割で黄色、上限で赤。振動でも知らせる）
 - 登板可否ボード：投手ごとに「今日あと何球」「次はいつ・何球投げられるか」
@@ -17,8 +17,10 @@
 - `help.html` 使い方ページ
 - `sw.js` 一度開いたら電波がなくても開けるようにする
 - `og.jpg` リンクを共有したときのプレビュー画像
+- `favicon.svg` ブラウザのタブのアイコン（DugoutToolsのロゴ。PitchCountは二塁が光る）
+- `apple-touch-icon.png` iPhoneで「ホーム画面に追加」したときのアイコン
 
-## DugoutTools のアプリ
+## DugoutToolsのアプリ
 
 - [TapScore](https://yatti3g-byte.github.io/TapScore/) 1球ずつタップして記録するスコアブック
 - [FormNote](https://yatti3g-byte.github.io/form-note/) コマ送りと角度の測定で、投げ方・打ち方をチェック

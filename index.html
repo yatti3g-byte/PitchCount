@@ -17,7 +17,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 /* VOICE: a quiet bench tool, same family as TapScore / FormNote / ShotFind.
    IDEA: the manager's pitch-count card: one big counter, a board of who can pitch today.
@@ -396,11 +397,11 @@ function settings(){
     '<li>ボーイズ：2022年のガイドライン。1日80球、連続する2日間で120球以内。連続2日間で80球を超えたら3日目は投球禁止、3連投は1日40球以内、4連投は禁止。</li>'+
     '<li>リトルリーグ：1日の上限はメジャー85球・マイナー75球・インターメディエート95球。休養日は世界リトルリーグの規定（21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日）で計算しています。</li>'+
     '<li>「1週間」は、その日を含む直近7日間で計算しています。大会によって数え方や上限が違うことがあるので、大会要項を確かめてください。</li></ul></section>';
-  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。機種変更やもしもの時のために、控えをとっておけます。</p>'+
+  h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこのスマホのブラウザに保存します。LINEで共有したとき、AI相談の文をAIアプリに渡したとき、控えファイルを送ったときは、自分が選んだ相手に内容が渡ります。<a href="help.html#data" target="_blank" rel="noopener">くわしく</a>機種変更やもしもの時のために、控えをとっておけます。</p>'+
     '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えで置き換える<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
     '<button class="btn danger" data-act="wipe">すべての記録を消す</button></section>';
   h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>使い方</h2><div class="row"><a class="btn" href="help.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">使い方ページ</a><button class="btn" data-act="tour">チュートリアル</button></div>'+(D.players.some(p=>p.sample)?'<button class="btn" data-act="sdel">見本のデータを消す</button>':'')+'</section>';
-  h+='<section class="card sister"><h2>DugoutTools のアプリ</h2><p class="muted">少年野球の現場で使える、無料・登録なしのアプリのシリーズです。</p>'+SERIES.map(x=>'<p>'+(x.url?'<a href="'+x.url+'" target="_blank" rel="noopener">'+x.n+'</a>':'<b>'+x.n+'</b>')+'　'+x.d+'</p>').join('')+'</section>';
+  h+='<section class="card sister"><h2>DugoutToolsのアプリ</h2><p class="muted">少年野球の現場で使える、無料・登録なしの道具</p>'+SERIES.map(x=>'<p>'+(x.url?'<a href="'+x.url+'" target="_blank" rel="noopener">'+x.n+'</a>':'<b>'+x.n+'</b>')+'　'+x.d+'</p>').join('')+'</section>';
   h+=coffee()+'<p class="muted" style="text-align:center;margin:0">PitchCount '+VERSION+'</p>';
   return h;
 }
