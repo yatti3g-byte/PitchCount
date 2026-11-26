@@ -31,9 +31,9 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;
-  --accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;--hit:#ff7a66;--ov:#3d201b;color-scheme:dark}}
+  --accent:#58b87e;--accent-ink:#14201c;--lamp-s:#f0c21a;--lamp-o:#ef5a44;--hit:#ff7a66;--ov:#3d201b;color-scheme:dark}}
 :root[data-theme="dark"]{--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;
-  --accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;--hit:#ff7a66;--ov:#3d201b;color-scheme:dark}
+  --accent:#58b87e;--accent-ink:#14201c;--lamp-s:#f0c21a;--lamp-o:#ef5a44;--hit:#ff7a66;--ov:#3d201b;color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--font);-webkit-text-size-adjust:100%;overflow-x:clip}
@@ -96,7 +96,7 @@ p{margin:0}
 .live{display:flex;flex-direction:column;gap:10px}
 .lhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .lhead b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tap{width:100%;min-height:min(46vh,380px);border:0;border-radius:22px;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;user-select:none;-webkit-user-select:none;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .06s}
+.tap{width:100%;min-height:min(46vh,380px);border:0;border-radius:22px;background:var(--accent);color:var(--accent-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;user-select:none;-webkit-user-select:none;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .06s}
 .tap:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
 .tap .who{font-size:16px;font-weight:700;opacity:.9}
 .tap .n{font-size:clamp(84px,26vw,132px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
@@ -305,7 +305,14 @@ function board(){
   h+=coffee();
   return h;
 }
-const coffee=()=>'<a class="coffee" href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ PitchCountは無料です。役に立ったら、開発をコーヒー1杯で応援できます（Buy Me a Coffee）</a>';
+// DugoutTools シリーズ（全アプリの末尾に同じ一覧を置く）
+const SERIES=[
+  {n:'TapScore',url:'https://yatti3g-byte.github.io/TapScore/',d:'1球ずつタップして記録するスコアブック'},
+  {n:'FormNote',url:'https://yatti3g-byte.github.io/form-note/',d:'コマ送りと角度の測定で、投げ方・打ち方をチェック'},
+  {n:'ShotFind',url:'https://yatti3g-byte.github.io/ShotFind/',d:'チームの試合写真から、わが子が写っている写真だけを探す'},
+  {n:'PitchCount',url:'',d:'このアプリ。球数制限に合わせた球数カウンター'}];
+const VERSION='1.0';
+const coffee=()=>'<a class="coffee" href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ DugoutToolsは無料です。役に立ったら、開発をコーヒー1杯で応援できます（Buy Me a Coffee）</a>';
 function meter(i){const r=Math.min(1,i.u/i.l),lv=i.u>=i.l?'over':r>=.8?'warn':'ok';
   return '<div class="mt '+lv+'"><span>'+i.k+'</span><i><span style="width:'+(r*100).toFixed(0)+'%"></span></i><b>'+i.u+' / '+i.l+'</b></div>';}
 function clsName(p){const R=rule();if(!R||!R.classes)return '';const c=R.classes.find(c=>c[0]===(p.cls||''))||R.classes[0];return '・'+c[1];}
@@ -390,11 +397,11 @@ function settings(){
     '<li>リトルリーグ：1日の上限はメジャー85球・マイナー75球・インターメディエート95球。休養日は世界リトルリーグの規定（21〜35球で1日、36〜50球で2日、51〜65球で3日、66球以上で4日）で計算しています。</li>'+
     '<li>「1週間」は、その日を含む直近7日間で計算しています。大会によって数え方や上限が違うことがあるので、大会要項を確かめてください。</li></ul></section>';
   h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>データ</h2><p class="muted">記録はこの端末のブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。機種変更やもしもの時のために、控えをとっておけます。</p>'+
-    '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えから戻す<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
+    '<div class="row"><button class="btn" data-act="export">控えを作る</button><label class="btn" style="display:flex;align-items:center;justify-content:center">控えで置き換える<input type="file" accept="application/json,.json" id="imp" hidden></label></div>'+
     '<button class="btn danger" data-act="wipe">すべての記録を消す</button></section>';
   h+='<section class="card" style="display:flex;flex-direction:column;gap:8px"><h2>使い方</h2><div class="row"><a class="btn" href="help.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">使い方ページ</a><button class="btn" data-act="tour">チュートリアル</button></div>'+(D.players.some(p=>p.sample)?'<button class="btn" data-act="sdel">見本のデータを消す</button>':'')+'</section>';
-  h+='<section class="card sister"><h2>姉妹アプリ</h2><p><a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>　1球ずつタップして記録するスコアブック</p></section>';
-  h+=coffee();
+  h+='<section class="card sister"><h2>DugoutTools のアプリ</h2><p class="muted">少年野球の現場で使える、無料・登録なしのアプリのシリーズです。</p>'+SERIES.map(x=>'<p>'+(x.url?'<a href="'+x.url+'" target="_blank" rel="noopener">'+x.n+'</a>':'<b>'+x.n+'</b>')+'　'+x.d+'</p>').join('')+'</section>';
+  h+=coffee()+'<p class="muted" style="text-align:center;margin:0">PitchCount '+VERSION+'</p>';
   return h;
 }
 
@@ -478,12 +485,11 @@ function cqSend(){
   if(o.q!=='free'&&!o.games.length){toast('予定の試合を入れてください');return;}
   const ta=$('#cq-text'),t=ta?ta.value:cqText(),cp=copyText(t),say=m=>{ui.cqMsg=m;const e=$('.consult .aimsg');if(e)e.textContent=m;};
   const inFrame=window.self!==window.top;
-  if(!inFrame&&navigator.share&&matchMedia('(pointer:coarse)').matches){
+  // TapScore と同じ：共有画面（AIアプリを選ぶ）だけ。共有画面がない環境ではコピーして貼ってもらう
+  if(!inFrame&&navigator.share){
     navigator.share({text:t}).then(async()=>say((await cp)?'質問文はコピー済みです。AIアプリに文章が入っていないときは、貼り付けてください。':''),
       async e=>{if(e&&e.name==='AbortError'){say((await cp)?'質問文をコピーしました。':'');return;}say((await cp)?'質問文をコピーしました。AIアプリに貼り付けてください。':'質問文を長押しでコピーして、AIアプリに貼り付けてください。');});return;}
-  // パソコン：文章が入った状態でChatGPTを開く
-  const w=inFrame?null:window.open('https://chatgpt.com/#?q='+encodeURIComponent(t),'_blank');if(w){try{w.opener=null;}catch(e){}}
-  cp.then(ok=>say(w?'ChatGPTを開きました。質問文はコピー済みなので、文章が入っていないときは貼り付けてください。':ok?'質問文をコピーしました。AIアプリ（ChatGPT・Claudeなど）に貼り付けてください。':'質問文を選んでコピーし、AIアプリに貼り付けてください。'));
+  cp.then(ok=>say(ok?'質問文をコピーしました。AIアプリ（ChatGPT・Claudeなど）に貼り付けてください。':'質問文を選んでコピーし、AIアプリに貼り付けてください。'));
 }
 
 /* ---------- 見本データ（チュートリアル用。sample の印で、自分の記録と分けて消せる） ---------- */
@@ -620,8 +626,12 @@ document.addEventListener('click',async e=>{
   else if(a==='eook'){const o=D.outings.find(x=>x.id===ui.sheet.oid),n=parseInt($('#eo-n').value,10),d=$('#eo-date').value;if(!(n>0&&n<=300)||!d){toast('日付と球数を入れてください');return;}
     o.n=n;o.opp=$('#eo-opp').value.trim();if(!(D.live&&o.sid===D.live.id))o.date=d;save();closeSheet();render();}
   else if(a==='delo'){const oid=ui.sheet.oid;confirmSheet('この登板を削除しますか？','削除する',()=>{const o=D.outings.find(x=>x.id===oid);D.outings=D.outings.filter(x=>x.id!==oid);if(D.live&&o)D.live.hist=D.live.hist.filter(x=>x!==o.pid||o.sid!==D.live.id);save();render();},true);}
-  else if(a==='export'){const txt=JSON.stringify({app:'PitchCount',v:1,at:Date.now(),data:D});
-    let ok=false;try{const u=URL.createObjectURL(new Blob([txt],{type:'application/json'})),l=document.createElement('a');l.href=u;l.download='pitchcount-'+today()+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);ok=true;}catch(_){}
+  else if(a==='export'){const txt=JSON.stringify({app:'PitchCount',v:1,at:Date.now(),data:D}),name='pitchcount-'+today()+'.json';
+    // スマホ：TapScore と同じく共有画面（Googleドライブ・iCloud・LINEのKeepなど）へ送る
+    if(window.self===window.top&&navigator.canShare&&matchMedia('(pointer:coarse)').matches){try{const f=new File([txt],name,{type:'application/json'});
+      if(navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'PitchCountの控え'});toast('控えのファイルを送りました。ドライブやLINEのKeepなどに保存しておいてください');}
+        catch(e2){if(!(e2&&e2.name==='AbortError'))toast('送れませんでした。もう一度お試しください');}return;}}catch(_){}}
+    let ok=false;try{const u=URL.createObjectURL(new Blob([txt],{type:'application/json'})),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);ok=true;}catch(_){}
     ui.sheet={text:txt};sheet('<h3>控え</h3><p class="muted">'+(ok?'ファイルを保存しました。保存されないときは、下の文字をコピーしてメモなどに残してください。':'下の文字をコピーして、メモなどに残してください。')+'</p><textarea rows="5" readonly>'+esc(txt)+'</textarea><div class="row"><button class="btn" data-act="copy">コピー</button><button class="btn" data-act="close">閉じる</button></div>');}
   else if(a==='wipe')confirmSheet('すべての投手と記録を消しますか？元に戻せません。','すべて消す',()=>{D={v:1,rule:D.rule,custom:D.custom,players:[],outings:[],live:null};save();ui.view='board';render();},true);
 });

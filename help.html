@@ -15,10 +15,10 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
 <style>
 /* PitchCount 本体と同じ色・文字。1段組みで、上から読めば使えるようになる順に並べる */
-:root{--paper:#f6f5f0;--surface:#fff;--ink:#1f2a22;--muted:#6b756e;--line:#d9d8d0;--accent2:#e8f3ec;--wn:#fff4d6;--accent:#2f7d4f;--lamp-s:#e0b000;--lamp-o:#d8432e;
+:root{--paper:#f6f5f0;--surface:#fff;--ink:#1f2a22;--muted:#6b756e;--line:#d9d8d0;--accent2:#e8f3ec;--wn:#fff4d6;--accent:#2f7d4f;--accent-ink:#fff;--lamp-s:#e0b000;--lamp-o:#d8432e;
   --font:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--accent-ink:#14201c;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#141a16;--surface:#1e2721;--ink:#e8ede9;--muted:#98a49b;--line:#33423a;--accent2:#25382c;--wn:#3a3418;--accent:#58b87e;--accent-ink:#14201c;--lamp-s:#f0c21a;--lamp-o:#ef5a44;color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html{scroll-padding-top:12px}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 var(--font);-webkit-text-size-adjust:100%;overflow-x:clip}
@@ -35,18 +35,18 @@ p{margin:0 0 10px}
 .toc a{display:inline-block;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:14px;text-decoration:none;font-weight:700}
 .steps{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:s}
 .steps li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 52px;position:relative;counter-increment:s}
-.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;font-weight:800;display:grid;place-items:center}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-weight:800;display:grid;place-items:center}
 .steps b{display:block}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
 .note{background:var(--wn);border-radius:10px;padding:10px 12px;font-size:14px;margin:10px 0}
 ul.dots{margin:0 0 10px;padding-left:20px}
 ul.dots li{margin:2px 0}
 .lamps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
-.lamps div{border-radius:12px;padding:10px;text-align:center;font-weight:700;font-size:14px;color:#fff;background:var(--accent)}
+.lamps div{border-radius:12px;padding:10px;text-align:center;font-weight:700;font-size:14px;color:var(--accent-ink);background:var(--accent)}
 .lamps div:nth-child(2){background:var(--lamp-s);color:#2a2104}.lamps div:nth-child(3){background:var(--lamp-o)}
 .lamps small{display:block;font-weight:500;font-size:12px}
 dl{margin:0}dt{font-weight:700;margin-top:14px}dd{margin:2px 0 0}
-.go{display:block;text-align:center;background:var(--accent);color:#fff;border-radius:12px;padding:14px;font-weight:700;text-decoration:none;margin:28px 0 10px}
+.go{display:block;text-align:center;background:var(--accent);color:var(--accent-ink);border-radius:12px;padding:14px;font-weight:700;text-decoration:none;margin:28px 0 10px}
 .foot{font-size:13px;color:var(--muted);text-align:center}
 .foot a{color:var(--muted)}
 kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 6px;background:var(--surface);white-space:nowrap}
@@ -108,7 +108,7 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
   <li><b>相談したいことを選ぶ</b>「予定の試合の起用を組みたい」「大事な試合に投手を残したい」など。自分で書くこともできます。</li>
   <li><b>予定の試合を入れる</b>日付と試合数（1日2試合にも対応）、「準決勝」などのメモ。</li>
   <li><b>今回は投げさせない投手を外す</b>タップした投手は相談に入れません。理由は書かずに「起用しない」とだけ伝えます。</li>
-  <li><b>送る</b><kbd>質問文をコピーして、AIアプリに送る</kbd>。スマホでは共有画面が、パソコンではChatGPTが開きます。</li>
+  <li><b>送る</b><kbd>質問文をコピーして、AIアプリに送る</kbd>。共有画面が開くので、使っているAIアプリを選んでください。共有画面が出ないときは、文章がコピーされるので貼り付けてください。</li>
 </ol>
 <p>上限や休養日は、アプリが計算した数字をそのまま渡すので、AIの計算ミスで上限を超える案が出にくい作りです。「選手の名前を伏せる」にチェックすると、「投手A」などに置きかえて渡します。</p>
 <p class="note"><b>肩やひじに痛み・違和感がある選手は、AIに相談せず、投げさせないでください。</b>AIの案は、起用する前に登板可否ボードで確かめてください。</p>
@@ -116,8 +116,8 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
 <h2 id="data">データと控え</h2>
 <p>記録はこのスマホのブラウザの中に保存され、アプリが自動で外に送ることはありません。LINEで共有したり、AIに相談したりしたときは、その文章が相手のサービスに渡ります。</p>
 <ul class="dots">
-  <li><b>控えを作る</b>　「設定」の<kbd>控えを作る</kbd>で、記録を1つのファイルにして保存できます。ブラウザのデータを消したり、スマホをなくしたりしても、控えがあれば戻せます。</li>
-  <li><b>控えから戻す</b>　「設定」の<kbd>控えから戻す</kbd>でファイルを選ぶと、記録がその控えの内容に置きかわります。置きかえる前の記録も、念のため1つ残します。</li>
+  <li><b>控えを作る</b>　「設定」の<kbd>控えを作る</kbd>で、記録を1つのファイルにします。スマホでは共有画面が開くので、Googleドライブ・iCloud・LINEのKeepなどに保存してください。ブラウザのデータを消したり、スマホをなくしたりしても、控えがあれば戻せます。</li>
+  <li><b>控えで置き換える</b>　「設定」の<kbd>控えで置き換える</kbd>でファイルを選ぶと、このスマホの記録がその控えの内容に<b>置き換わります</b>（TapScoreのように、手元の記録と合わせるのではありません）。置き換える前の記録も、念のため1つ残します。</li>
 </ul>
 
 <h2 id="faq">よくある質問</h2>
@@ -135,14 +135,15 @@ kbd{font-family:inherit;font-size:14px;font-weight:700;border:1px solid var(--li
   <dt>ホーム画面に置けますか？</dt>
   <dd>iPhoneはSafariの共有ボタンから「ホーム画面に追加」、AndroidはChromeのメニューから「ホーム画面に追加」で、アプリのように開けます。</dd>
   <dt>2台のスマホで同じ記録を見られますか？</dt>
-  <dd>記録はスマホごとに保存されるので、自動では同じになりません。スマホを替えるときは、前のスマホで「控えを作る」、新しいスマホで「控えから戻す」を使ってください。試合ごとの球数は「試合終了」のあとにLINEで共有できます。</dd>
+  <dd>記録はスマホごとに保存されるので、自動では同じになりません。スマホを替えるときは、前のスマホで「控えを作る」、新しいスマホで「控えで置き換える」を使ってください。試合ごとの球数は「試合終了」のあとにLINEで共有できます。</dd>
   <dt>ルールの出典はどこで見られますか？</dt>
   <dd>「設定」の「ルールの出典」に、団体ごとの根拠と確認した日を載せています。</dd>
 </dl>
 
 <a class="go" href="index.html">PitchCountを開く</a>
-<p class="foot">姉妹アプリ：<a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>（1球ずつタップして記録するスコアブック）<br>
-<a href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ 役に立ったら、開発をコーヒー1杯で応援できます</a></p>
+<p class="foot">PitchCount は、少年野球の現場で使える無料アプリのシリーズ <b>DugoutTools</b> のひとつです。<br>
+<a href="https://yatti3g-byte.github.io/TapScore/">TapScore</a>（スコアブック）・<a href="https://yatti3g-byte.github.io/form-note/">FormNote</a>（フォームチェック）・<a href="https://yatti3g-byte.github.io/ShotFind/">ShotFind</a>（わが子の写真探し）・PitchCount（球数カウンター）<br>
+<a href="https://buymeacoffee.com/formnote" target="_blank" rel="noopener">☕ DugoutToolsを、コーヒー1杯で応援できます</a></p>
 </main>
 </body>
 </html>
