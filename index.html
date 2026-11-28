@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PitchCount</title>
+<title>PitchCount｜少年野球の球数カウンター 無料・球数制限と登板管理</title>
 <meta name="theme-color" content="#f6f5f0">
-<meta name="description" content="1球ずつタップして数える、少年野球の無料の球数カウンター。学童・中学・高校・ボーイズ・リトルの球数制限に合わせて、今日あと何球投げられるか、次はいつ投げられるかがすぐ分かります。登録なし、データは端末の中だけ。">
+<meta name="description" content="少年野球の投手の球数を1球ずつタップで数える無料の球数カウンター。学童70球・中学100球・高校500球・ボーイズ・リトルリーグの球数制限に合わせて、今日あと何球、次はいつ投げられるかを自動で計算。登板管理と投手起用の相談にも。登録なし。">
+<meta name="google-site-verification" content="ITxa_inRuPYXshXMjW5c9h8XO8YNBbA4dsuDdqyTWBI" />
+<link rel="canonical" href="https://yatti3g-byte.github.io/PitchCount/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="PitchCount">
+<meta property="og:title" content="PitchCount｜少年野球の球数カウンター">
 <meta property="og:description" content="1球ずつタップして数える、少年野球の無料の球数カウンター。団体の球数制限に合わせて、今日あと何球、次はいつ投げられるかがすぐ分かります。登録なし、データは端末の中だけ。">
 <meta property="og:url" content="https://yatti3g-byte.github.io/PitchCount/">
 <meta property="og:image" content="https://yatti3g-byte.github.io/PitchCount/og.jpg">
@@ -19,6 +21,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"PitchCount","alternateName":"少年野球の球数カウンター","url":"https://yatti3g-byte.github.io/PitchCount/","applicationCategory":"SportsApplication","operatingSystem":"Web","inLanguage":"ja","description":"少年野球の投手の球数を数え、団体の球数制限に合わせて残りの球数と次に投げられる日を計算する無料のWebアプリ。","offers":{"@type":"Offer","price":"0","priceCurrency":"JPY"},"isPartOf":{"@type":"CreativeWorkSeries","name":"DugoutTools"}}
+</script>
 <style>
 /* VOICE: a quiet bench tool, same family as TapScore / FormNote / ShotFind.
    IDEA: the manager's pitch-count card: one big counter, a board of who can pitch today.
@@ -152,6 +157,11 @@ textarea{width:100%;font-size:13px;border:1px solid var(--line);border-radius:8p
 #tour .tbar .btn{min-height:44px;padding:8px 16px;background:transparent;color:#fff;border-color:rgba(255,255,255,.7)}
 #tour .tbar .btn.primary{background:#fff;color:#2f7d4f;border-color:#fff}
 @media (prefers-reduced-motion:reduce){#tour .tspot{transition:none;animation:none}}
+.about{max-width:540px;margin:0 auto;padding:8px 16px 40px;color:var(--muted);font-size:14px;line-height:1.75}
+.about h2{font-size:15px;color:var(--ink);margin:16px 0 6px;padding-top:16px;border-top:1px solid var(--line)}
+.about h3{font-size:14px;color:var(--ink);margin:12px 0 4px}
+.about p{margin:0 0 8px}.about ul{margin:0 0 8px;padding-left:1.3em}.about a{color:var(--accent)}
+body[data-view="count"] .about,body.touring .about{display:none}
 .coffee{display:block;margin-top:14px;padding:8px 0;font-size:13px;color:var(--muted);text-decoration:none;text-align:center}
 .linebtn{background:#06c755;color:#fff;border-color:#06c755;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 
@@ -180,6 +190,20 @@ textarea{width:100%;font-size:13px;border:1px solid var(--line);border-radius:8p
 </head>
 <body>
 <main id="main"></main>
+<section class="about" aria-labelledby="about-h">
+<h2 id="about-h">少年野球の球数を、数えて、守る</h2>
+<p>PitchCount（ピッチカウント）は、少年野球の投手の球数を1球ずつタップして数え、団体の球数制限に合わせて「今日あと何球投げられるか」「次はいつ投げられるか」を計算する無料のWebアプリです。学童（全日本軟式野球連盟：1日70球・1週間210球）、中学軟式（1日100球・1週間350球）、高校（1週間500球）、ボーイズリーグ（1日80球・連続2日120球と連投の制限）、リトルリーグ（1日の上限と休養日）に対応し、チームの約束に合わせた上限も設定できます。</p>
+<h3>こんな場面で</h3>
+<ul>
+<li>公式戦や練習試合のベンチで、スコアブックとは別に投手の球数だけを確実に数えたいとき</li>
+<li>週末の連戦や大会の前に、どの投手が何球まで投げられるかを確かめ、起用を考えたいとき</li>
+<li>保護者として、わが子の登板の記録を残しておきたいとき</li>
+</ul>
+<h3>よくある質問</h3>
+<p><b>インストールや登録は必要？</b>　いりません。スマホのブラウザで開くだけで使え、一度開けば電波のない球場でも開けます。</p>
+<p><b>上限を超えて投げたら？</b>　記録は止めずに残し、超えた球数を表示します。打者との対戦が終わるまでの続投なども、事実として記録できます。</p>
+<p>画面の見方や、AIへの起用相談、データの控えのとり方は<a href="help.html">使い方ページ</a>にまとめています。</p>
+</section>
 <div id="sheet" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
@@ -281,7 +305,7 @@ function render(){
   else if(ui.view==='count')h+=count();
   else if(ui.view==='history')h+=history();
   else h+=settings();
-  $('#main').innerHTML=h;
+  $('#main').innerHTML=h;document.body.dataset.view=ui.view;document.body.classList.toggle('touring',!!ui.tour);
   if(ui.tour)requestAnimationFrame(tourPlace);
   if(ui.view==='count'&&D.live)keepAwake();else releaseWake();
 }

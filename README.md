@@ -19,6 +19,7 @@
 - `og.jpg` リンクを共有したときのプレビュー画像
 - `favicon.svg` ブラウザのタブのアイコン（DugoutToolsのロゴ。PitchCountは二塁が光る）
 - `apple-touch-icon.png` iPhoneで「ホーム画面に追加」したときのアイコン
+- `sitemap.xml` Google Search Console に登録するサイトマップ
 
 ## DugoutToolsのアプリ
 
